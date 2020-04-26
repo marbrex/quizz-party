@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="fr">
   <head>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <!-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" /> -->
     <link rel="stylesheet" href="css/materialicons.css" />
     <link rel="stylesheet" href="css/materialize.min.css" />
+    <link rel="stylesheet" href="css/custom.css" />
     <script type="text/javascript" src="js/materialize.min.js" defer></script>
     <meta charset="UTF-8" />
     <title>LIFAP5 2019-2020 - Client</title>
@@ -20,25 +21,63 @@
     </div>
   </div>
 
+  <!-- Modal Structure -->
+  <div id="modal-login" class="modal">
+      <div class="modal-content">
+        <h4>Login</h4>
+        <label for="login-key-input">Key</label>
+        <input type="text" id="login-key-input" placeholder="Type here your xApiKey">
+      </div>
+      <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-red btn-flat">Cancel</a>
+        <a href="#modal-welcome" id="login-submit" class="modal-close waves-effect waves-green btn modal-trigger">Login</a>
+      </div>
+  </div>
+
+  <!-- Modal Structure -->
+  <div id="modal-welcome" class="modal">
+    <div class="modal-content">
+      <h4>Welcome !</h4>
+      <p>We are glad to see you !</p>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">OK</a>
+    </div>
+  </div>
+
+  <!-- Modal Structure -->
+  <div id="modal-logout" class="modal">
+      <div class="modal-content">
+        <h4>Are you sure you want to log out ?</h4>
+      </div>
+      <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-red btn-flat">No</a>
+        <a href="#!" id="logout-submit" class="modal-close waves-effect waves-green btn">Yes</a>
+      </div>
+  </div>
+
   <body>
     <header>
       <nav class="nav-extended blue-grey lighten-1">
         <div class="navbar-fixed">
           <nav>
             <div class="nav-wrapper blue-grey">
-              <a href="#!" class="brand-logo  center">Quizzz<i class="material-icons right">question_answer</i></a>
+              <a href="#" class="brand-logo center">Quizzz<i class="material-icons right">question_answer</i></a>
               <ul class="right hide-on-med-and-down">
                 <li>
                   <form>
                     <div class="input-field  blue-grey lighten-3">
-                      <input id="search" type="search" required />
+                      <input id="search" type="search" placeholder="Search" required />
                       <label class="label-icon" for="search"><i class="material-icons">search</i></label>
                       <i class="material-icons">close</i>
                     </div>
                   </form>
                 </li>
                 <li>
-                  <i id="id-login" class="material-icons">face</i>
+                  <i id="id-login" style="display: none;" class="material-icons">face</i>
+                </li>
+                <li>
+                  <a id="login-btn" class="waves-effect waves-light btn modal-trigger" href="#modal-login">Login</a>
                 </li>
               </ul>
             </div>
@@ -88,8 +127,6 @@
         </div>
       </div>
     </main>
-
-    <footer></footer>
 
     <footer class="page-footer grey darken-1">
       <div class="footer-copyright">

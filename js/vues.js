@@ -4,6 +4,34 @@
 // HTML : fonctions génération de HTML à partir des données passées en paramètre
 // //////////////////////////////////////////////////////////////////////////////
 
+const modifyWelcomeModalHtml = () => {
+  var welcomeModal = document.getElementById('modal-welcome');
+  welcomeModal.children[0].innerHTML = `
+      <h4>Welcome, ${state.user.lastname} ${state.user.firstname} !</h4>
+      <p>We are glad to see you !</p>
+    `;
+};
+
+const signedIn = () => {
+  var profileIcon = document.getElementById('id-login');
+  profileIcon.style.display = 'inline-block';
+
+  var loginBtnBlock = document.getElementById('login-btn').parentNode;
+  loginBtnBlock.innerHTML = `
+                  <a id="logout-btn" class="waves-effect waves-light btn modal-trigger" href="#modal-logout">Logout</a>
+                `;
+};
+
+const logedOut = () => {
+  var profileIcon = document.getElementById('id-login');
+  profileIcon.style.display = 'none';
+
+  var logoutBtnBlock = document.getElementById('logout-btn').parentNode;
+  logoutBtnBlock.innerHTML = `
+                  <a id="login-btn" class="waves-effect waves-light btn modal-trigger" href="#modal-login">Login</a>
+                `;
+};
+
 // génération d'une liste de quizzes avec deux boutons en bas
 const htmlQuizzesList = (quizzes, curr, total) => {
   console.debug(`@htmlQuizzesList(.., ${curr}, ${total})`);

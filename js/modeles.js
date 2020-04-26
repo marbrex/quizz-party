@@ -6,7 +6,7 @@
 
 // un objet global pour encapsuler l'état de l'application
 // on pourrait le stocker dans le LocalStorage par exemple
-const state = {
+var state = {
   // la clef de l'utilisateur
   xApiKey: '',
 
@@ -45,6 +45,34 @@ function filterHttpResponse(response) {
     })
     .catch((err) => console.error(`Error on json: ${err}`));
 }
+
+document.getElementById('login-submit').onclick = () => {
+  state.xApiKey = document.getElementById('login-key-input').value;
+  document.getElementById('login-key-input').value = '';
+  // console.log(state.xApiKey);
+
+  headers.set('X-API-KEY', state.xApiKey);
+
+  const url = `${state.serverUrl}/users/whoami`;
+  fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+      state.user = data;
+
+      modifyWelcomeModalHtml();
+      signedIn();
+    });
+};
+
+document.getElementById('logout-submit').onclick = () => {
+  state.xApiKey = '';
+  console.log(`state.xApiKey = '${state.xApiKey}'`);
+
+  state.user = undefined;
+  console.log(`state.user = ${state.user}`);
+
+  logedOut();
+};
 
 // //////////////////////////////////////////////////////////////////////////////
 // DONNEES DES UTILISATEURS
