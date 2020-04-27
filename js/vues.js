@@ -156,32 +156,38 @@ function renderCurrentQuizz() {
   // });
   // html += `</ul>`;
   // main.innerHTML = html;
-
-  let html = `<ul class="collection">`;
+  let html;
   let questionsArr = state.questions;
-  questionsArr.map((qstn) => {
-    html += `<li class="collection-item cyan lighten-5 quiz-question">
-      <p>Question ${qstn.question_id+1} :</p>
-      <p>
-        ${qstn.sentence}
-        <i id="question-drop-down-btn-${qstn.question_id}" class="material-icons question-drop-down-btn" onclick="showHideProps(${qstn.question_id})">arrow_drop_down</i>
-      </p>
-      <ul id="qstn-${qstn.question_id}-props" class="collection propositions-block-show">`;
-    let propositionsArr = qstn.propositions;
-    propositionsArr.map((prop) => {
-      html += `<li class="collection-item cyan lighten-4 question-proposition">
+
+  if (questionsArr.length === 0) {
+    html = `<h4 class="center-align"><i class="material-icons">sentiment_dissatisfied</i>This quizz doesn't have any questions !</h4>`;
+  }
+  else {
+    html = `<ul class="collection">`;
+    questionsArr.map((qstn) => {
+      html += `<li class="collection-item cyan lighten-5 quiz-question">
+        <p>Question ${qstn.question_id+1} :</p>
         <p>
-          <label class="qstn-prop">
-            <input name="group-${qstn.question_id}" type="radio" class="input-qstn-${qstn.question_id}" id="input-qstn-${qstn.question_id}-prop-${prop.proposition_id}" value="${prop.proposition_id}" />
-            <span id="qstn-${qstn.question_id}-prop-${prop.proposition_id}" class="prop" onclick="onClickProp()">${prop.content}</span>
-          </label>
+          ${qstn.sentence}
+          <i id="question-drop-down-btn-${qstn.question_id}" class="material-icons question-drop-down-btn" onclick="showHideProps(${qstn.question_id})">arrow_drop_down</i>
         </p>
-      </li>`;
+        <ul id="qstn-${qstn.question_id}-props" class="collection propositions-block-show">`;
+      let propositionsArr = qstn.propositions;
+      propositionsArr.map((prop) => {
+        html += `<li class="collection-item cyan lighten-4 question-proposition">
+          <p>
+            <label class="qstn-prop">
+              <input name="group-${qstn.question_id}" type="radio" class="input-qstn-${qstn.question_id}" id="input-qstn-${qstn.question_id}-prop-${prop.proposition_id}" value="${prop.proposition_id}" />
+              <span id="qstn-${qstn.question_id}-prop-${prop.proposition_id}" class="prop" onclick="onClickProp()">${prop.content}</span>
+            </label>
+          </p>
+        </li>`;
+      });
+      html += `</ul>`;
     });
-    html += `</ul>`;
-  });
-  html += `</ul>
-  <a id="quiz-done-btn" class="waves-effect waves-light btn disabled"><i class="material-icons right">done</i>Terminer</a>`;
+    html += `</ul>
+    <a id="quiz-done-btn" class="waves-effect waves-light btn disabled"><i class="material-icons right">done</i>Terminer</a>`;
+  }
   main.innerHTML = html;
 
   // let html = `<ul class="collapsible expandable">`;
