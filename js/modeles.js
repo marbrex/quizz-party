@@ -6,7 +6,7 @@
 
 // un objet global pour encapsuler l'état de l'application
 // on pourrait le stocker dans le LocalStorage par exemple
-const state = {
+var state = {
   // la clef de l'utilisateur
   xApiKey: '',
 
@@ -45,6 +45,36 @@ function filterHttpResponse(response) {
     })
     .catch((err) => console.error(`Error on json: ${err}`));
 }
+
+// Le bouton "Login" est appue
+document.getElementById('login-submit').onclick = () => {
+  state.xApiKey = document.getElementById('login-key-input').value;
+  document.getElementById('login-key-input').value = '';
+  // console.log(state.xApiKey);
+
+  headers.set('X-API-KEY', state.xApiKey);
+
+  const url = `${state.serverUrl}/users/whoami`;
+  fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+      state.user = data;
+
+      modifyWelcomeModalHtml();
+      signedIn();
+    });
+};
+
+// Le bouton "Logout" est appue
+document.getElementById('logout-submit').onclick = () => {
+  state.xApiKey = '';
+  console.log(`state.xApiKey = '${state.xApiKey}'`);
+
+  state.user = undefined;
+  console.log(`state.user = ${state.user}`);
+
+  logedOut();
+};
 
 // //////////////////////////////////////////////////////////////////////////////
 // DONNEES DES UTILISATEURS
@@ -90,3 +120,47 @@ const getQuizzes = (p = 1) => {
       return renderQuizzes();
     });
 };
+
+// //////////////////////////////////////////////////////////////////////////////
+// DONNEES DES QUESTIONS
+// //////////////////////////////////////////////////////////////////////////////
+
+const getQuestions = (quizId) => {
+  console.debug(`@getQuestions(${quizId})`);
+  const url = `${state.serverUrl}/quizzes/${state.currentQuizz}/questions/`;
+
+  return fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+      state.questions = data;
+
+      // console.log(state.questions);
+      return renderCurrentQuizz();
+    });
+};
+
+// //////////////////////////////////////////////////////////////////////////////
+// PROPOSITIONS
+// //////////////////////////////////////////////////////////////////////////////
+
+// Bouton "Terminer" est clickable ssi
+// l'utilisateur a repondu a toutes les questions
+function onClickProp() {
+  setTimeout(() => {
+    let nb = 0;
+
+    state.questions.map((qstn) => {
+      nb += document.querySelectorAll(`input[type=radio]:checked.input-qstn-${qstn.question_id}`).length;
+    });
+    console.log("nb : " + nb);
+
+    if (nb === state.questions.length) {
+      document.getElementById('quiz-done-btn').classList.remove("disabled");
+    }
+  }, 100);
+}
+
+function showHideProps(qstn_id) {
+  document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-show');
+  document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-collapsed');
+}
