@@ -43,7 +43,7 @@ const htmlQuizzesList = (quizzes, curr, total) => {
   // VOIR https://materializecss.com/modals.html
   const quizzesLIst = quizzes.map(
     (q) =>
-      `<li class="collection-item modal-trigger cyan lighten-5" data-target="id-modal-quizz-menu" data-quizzid="${q.quiz_id}">
+      `<li class="collection-item cyan lighten-5 quizz-element" data-quizzid="${q.quiz_id}">
         <h5>${q.title}</h5>
         ${q.description} <a class="chip">${q.owner_id}</a>
       </li>`
@@ -130,7 +130,7 @@ function renderQuizzes() {
     modal.children[0].innerHTML = html;
     state.currentQuizz = quizzId;
     // eslint-disable-next-line no-use-before-define
-    renderCurrentQuizz();
+    getQuestions(state.currentQuizz);
   }
 
   // pour chaque quizz, on lui associe son handler
@@ -141,7 +141,77 @@ function renderQuizzes() {
 
 function renderCurrentQuizz() {
   const main = document.getElementById('id-all-quizzes-main');
-  main.innerHTML = `Ici les détails pour le quizz #${state.currentQuizz}`;
+
+  // let html = `<ul class="collection">`;
+  // // console.log(state.quizzes);
+  // var quizzesArr = state.quizzes.results;
+  // console.log(quizzesArr);
+  // var myQuiz = quizzesArr.find(o => o.quiz_id == state.currentQuizz);
+  // // console.log(myQuiz);
+  // Object.keys(myQuiz).map(function(objectKey, index) {
+  //   var value = myQuiz[objectKey];
+  //   html += `<li class="collection-item cyan lighten-5">
+  //     ${objectKey} = ${value}
+  //   </li>`;
+  // });
+  // html += `</ul>`;
+  // main.innerHTML = html;
+
+  let html = `<ul class="collection">`;
+  let questionsArr = state.questions;
+  questionsArr.map((qstn) => {
+    html += `<li class="collection-item cyan lighten-5 quiz-question">
+      <p>Question ${qstn.question_id+1} :</p>
+      <p>
+        ${qstn.sentence}
+        <i id="question-drop-down-btn-${qstn.question_id}" class="material-icons question-drop-down-btn" onclick="showHideProps(${qstn.question_id})">arrow_drop_down</i>
+      </p>
+      <ul id="qstn-${qstn.question_id}-props" class="collection propositions-block-show">`;
+    let propositionsArr = qstn.propositions;
+    propositionsArr.map((prop) => {
+      html += `<li class="collection-item cyan lighten-4 question-proposition">
+        <p>
+          <label class="qstn-prop">
+            <input name="group-${qstn.question_id}" type="radio" class="input-qstn-${qstn.question_id}" id="input-qstn-${qstn.question_id}-prop-${prop.proposition_id}" value="${prop.proposition_id}" />
+            <span id="qstn-${qstn.question_id}-prop-${prop.proposition_id}" class="prop" onclick="onClickProp()">${prop.content}</span>
+          </label>
+        </p>
+      </li>`;
+    });
+    html += `</ul>`;
+  });
+  html += `</ul>
+  <a id="quiz-done-btn" class="waves-effect waves-light btn disabled"><i class="material-icons right">done</i>Terminer</a>`;
+  main.innerHTML = html;
+
+  // let html = `<ul class="collapsible expandable">`;
+  // let questionsArr = state.questions;
+  // questionsArr.map((qstn) => {
+  //   html += `<li class="active">
+  //     <div class="collapsible-header">
+  //       <p>Question ${qstn.question_id+1} : </p>
+  //       <p>
+  //         ${qstn.sentence}
+  //       </p>
+  //     </div>
+  //     <div class="collapsible-body">
+  //       <ul class="collection">`;
+  //   let propositionsArr = qstn.propositions;
+  //   propositionsArr.map((prop) => {
+  //     html += `<li class="collection-item cyan lighten-4 question-proposition">
+  //       <p>
+  //         <label class="qstn-prop">
+  //           <input name="group-${qstn.question_id}" type="radio" class="input-qstn-${qstn.question_id}" id="input-qstn-${qstn.question_id}-prop-${prop.proposition_id}" value="${prop.proposition_id}" />
+  //           <span id="qstn-${qstn.question_id}-prop-${prop.proposition_id}" class="prop" onclick="onClickProp()">${prop.content}</span>
+  //         </label>
+  //       </p>
+  //     </li>`;
+  //   });
+  //   html += `</ul></div></li>`;
+  // });
+  // html += `</ul>
+  // <a id="quiz-done-btn" class="waves-effect waves-light btn disabled"><i class="material-icons right">done</i>Terminer</a>`;
+  // main.innerHTML = html;
 }
 
 // quand on clique sur le bouton de login, il nous dit qui on est
@@ -157,7 +227,7 @@ const renderUserBtn = () => {
     } else {
       // eslint-disable-next-line no-alert
       alert(
-        `Pour vous authentifier, remplir le champs xApiKey de l'objet state dans js/modele.js`
+        `Please Log In by entering your XApiKey !`
       );
     }
   };
