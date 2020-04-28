@@ -62,6 +62,9 @@ document.getElementById('login-submit').onclick = () => {
 
       modifyWelcomeModalHtml();
       signedIn();
+    }).then(() => {
+      getMyQuizzes();
+      getMyAnswers();
     });
 };
 
@@ -118,6 +121,44 @@ const getQuizzes = (p = 1) => {
       // on a mis à jour les donnés, on peut relancer le rendu
       // eslint-disable-next-line no-use-before-define
       return renderQuizzes();
+    });
+};
+
+const getMyQuizzes = () => {
+  console.debug(`@getMyQuizzes()`);
+  const url = `${state.serverUrl}/users/quizzes`;
+
+  // le téléchargement est asynchrone, là màj de l'état et le rendu se fait dans le '.then'
+  return fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+        // /!\ ICI L'ETAT EST MODIFIE /!\
+        state.myQuizzes = data;
+        console.log("My quizzes : ");
+        console.log(state.myQuizzes);
+
+        // on a mis à jour les donnés, on peut relancer le rendu
+        // eslint-disable-next-line no-use-before-define
+        return renderMyQuizzes();
+    });
+};
+
+const getMyAnswers = () => {
+  console.debug(`@getMyAnswers()`);
+  const url = `${state.serverUrl}/users/answers`;
+
+  // le téléchargement est asynchrone, là màj de l'état et le rendu se fait dans le '.then'
+  return fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+        // /!\ ICI L'ETAT EST MODIFIE /!\
+        state.myAnswers = data;
+        console.log("My answers : ");
+        console.log(state.myAnswers);
+
+        // on a mis à jour les donnés, on peut relancer le rendu
+        // eslint-disable-next-line no-use-before-define
+        return renderMyAnswers();
     });
 };
 
