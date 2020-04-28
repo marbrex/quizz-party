@@ -139,6 +139,41 @@ function renderQuizzes() {
   });
 }
 
+function renderMyQuizzes() {
+  const listHtml = document.getElementById('id-my-quizzes-list');
+
+  let html = `<ul class="collection">`;
+  state.myQuizzes.map(
+    (q) =>
+      html += `<li class="collection-item cyan lighten-5 quizz-element" data-quizzid="${q.quiz_id}">
+        <h5>${q.title}</h5>
+        ${q.description} <a class="chip">${q.owner_id}</a>
+      </li>`
+  );
+  html += `</ul>`;
+
+  listHtml.innerHTML = html;
+}
+
+function renderMyAnswers() {
+  const listHtml = document.getElementById('id-my-answers-list');
+
+  let html = `<ul class="collection">`;
+  state.myAnswers.map((answ) => {
+    console.log('This is a quizz, to which i have answered : ');
+    console.log(answ.quiz_id);
+
+    html += `<li class="collection-item cyan lighten-5 quizz-element">
+      <h5>${answ.title}</h5>
+      ${answ.description} <a class="chip">Author : ${answ.owner_id}</a>
+      <a class="chip">Quizz ID : ${answ.quiz_id}</a>
+    </li>`;
+  });
+  html += `</ul>`;
+
+  listHtml.innerHTML = html;
+}
+
 function renderCurrentQuizz() {
   const main = document.getElementById('id-all-quizzes-main');
 
@@ -186,7 +221,7 @@ function renderCurrentQuizz() {
       html += `</ul>`;
     });
     html += `</ul>
-    <a id="quiz-done-btn" class="waves-effect waves-light btn disabled"><i class="material-icons right">done</i>Terminer</a>`;
+    <a id="quiz-done-btn" class="waves-effect waves-light btn disabled" onclick="onClickTerminer()"><i class="material-icons right">done</i>Terminer</a>`;
   }
   main.innerHTML = html;
 

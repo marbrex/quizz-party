@@ -62,6 +62,9 @@ document.getElementById('login-submit').onclick = () => {
 
       modifyWelcomeModalHtml();
       signedIn();
+    }).then(() => {
+      getMyQuizzes();
+      getMyAnswers();
     });
 };
 
@@ -121,6 +124,44 @@ const getQuizzes = (p = 1) => {
     });
 };
 
+const getMyQuizzes = () => {
+  console.debug(`@getMyQuizzes()`);
+  const url = `${state.serverUrl}/users/quizzes`;
+
+  // le téléchargement est asynchrone, là màj de l'état et le rendu se fait dans le '.then'
+  return fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+        // /!\ ICI L'ETAT EST MODIFIE /!\
+        state.myQuizzes = data;
+        console.log("My quizzes : ");
+        console.log(state.myQuizzes);
+
+        // on a mis à jour les donnés, on peut relancer le rendu
+        // eslint-disable-next-line no-use-before-define
+        return renderMyQuizzes();
+    });
+};
+
+const getMyAnswers = () => {
+  console.debug(`@getMyAnswers()`);
+  const url = `${state.serverUrl}/users/answers`;
+
+  // le téléchargement est asynchrone, là màj de l'état et le rendu se fait dans le '.then'
+  return fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+        // /!\ ICI L'ETAT EST MODIFIE /!\
+        state.myAnswers = data;
+        console.log("My answers : ");
+        console.log(state.myAnswers);
+
+        // on a mis à jour les donnés, on peut relancer le rendu
+        // eslint-disable-next-line no-use-before-define
+        return renderMyAnswers();
+    });
+};
+
 // //////////////////////////////////////////////////////////////////////////////
 // DONNEES DES QUESTIONS
 // //////////////////////////////////////////////////////////////////////////////
@@ -163,4 +204,53 @@ function onClickProp() {
 function showHideProps(qstn_id) {
   document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-show');
   document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-collapsed');
+}
+
+const postAnswers = (quiz_id, qstn_id, prop_id) => {
+  console.debug(`@postProps(${quiz_id}, ${qstn_id}, ${prop_id})`);
+  const url = `${state.serverUrl}/quizzes/${quiz_id}/questions/${qstn_id}/answers/${prop_id}`;
+
+  let configObj = {
+    method: 'POST',
+    headers: state.headers
+  };
+
+  return fetch(url, configObj)
+  .then(filterHttpResponse)
+  .then((data) => {
+    console.log("postProps response : ");
+    console.log(data);
+    return data;
+  });
+};
+
+function onClickTerminer() {
+  console.log("Questions : ");
+  console.log(state.questions);
+  state.questions.map((qstn) => {
+    console.log("Propositions : ");
+    console.log(qstn.propositions);
+  });
+
+  let propsArr = new Array;
+
+  console.log("user : ");
+  console.log(state.user);
+
+  state.questions.map((qstn, index) => {
+    propsArr[index] = Number(document.querySelector(`input[type=radio]:checked.input-qstn-${qstn.question_id}`).value);
+
+    let jsonData = new Object({
+      user_id: state.user.user_id,
+      quiz_id: qstn.quiz_id,
+      question_id: qstn.question_id,
+      proposition_id: propsArr[index],
+      answered_at: new Date()
+    });
+
+    console.log("jsonData : ");
+    console.log(jsonData);
+
+    let response = postAnswers(jsonData.quiz_id, jsonData.question_id, jsonData.proposition_id);
+  });
 }
