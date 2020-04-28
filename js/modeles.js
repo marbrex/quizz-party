@@ -76,6 +76,9 @@ document.getElementById('logout-submit').onclick = () => {
   state.user = undefined;
   console.log(`state.user = ${state.user}`);
 
+  state.myQuizzes = undefined;
+  state.myAnswers = undefined;
+
   logedOut();
 };
 

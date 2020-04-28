@@ -30,6 +30,9 @@ const logedOut = () => {
   logoutBtnBlock.innerHTML = `
                   <a id="login-btn" class="waves-effect waves-light btn modal-trigger" href="#modal-login">Login</a>
                 `;
+
+  document.getElementById('id-my-quizzes-list').innerHTML = `<h4>Login to see your quizzes</h4>`;
+  document.getElementById('id-my-answers-list').innerHTML = `<h4>Login to see your answers</h4>`;
 };
 
 // génération d'une liste de quizzes avec deux boutons en bas
