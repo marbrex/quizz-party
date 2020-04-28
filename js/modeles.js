@@ -164,3 +164,52 @@ function showHideProps(qstn_id) {
   document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-show');
   document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-collapsed');
 }
+
+const postAnswers = (quiz_id, qstn_id, prop_id) => {
+  console.debug(`@postProps(${quiz_id}, ${qstn_id}, ${prop_id})`);
+  const url = `${state.serverUrl}/quizzes/${quiz_id}/questions/${qstn_id}/answers/${prop_id}`;
+
+  let configObj = {
+    method: 'POST',
+    headers: state.headers
+  };
+
+  return fetch(url, configObj)
+  .then(filterHttpResponse)
+  .then((data) => {
+    console.log("postProps response : ");
+    console.log(data);
+    return data;
+  });
+};
+
+function onClickTerminer() {
+  console.log("Questions : ");
+  console.log(state.questions);
+  state.questions.map((qstn) => {
+    console.log("Propositions : ");
+    console.log(qstn.propositions);
+  });
+
+  let propsArr = new Array;
+
+  console.log("user : ");
+  console.log(state.user);
+
+  state.questions.map((qstn, index) => {
+    propsArr[index] = Number(document.querySelector(`input[type=radio]:checked.input-qstn-${qstn.question_id}`).value);
+
+    let jsonData = new Object({
+      user_id: state.user.user_id,
+      quiz_id: qstn.quiz_id,
+      question_id: qstn.question_id,
+      proposition_id: propsArr[index],
+      answered_at: new Date()
+    });
+
+    console.log("jsonData : ");
+    console.log(jsonData);
+
+    let response = postAnswers(jsonData.quiz_id, jsonData.question_id, jsonData.proposition_id);
+  });
+}

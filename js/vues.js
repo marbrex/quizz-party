@@ -186,7 +186,7 @@ function renderCurrentQuizz() {
       html += `</ul>`;
     });
     html += `</ul>
-    <a id="quiz-done-btn" class="waves-effect waves-light btn disabled"><i class="material-icons right">done</i>Terminer</a>`;
+    <a id="quiz-done-btn" class="waves-effect waves-light btn disabled" onclick="onClickTerminer()"><i class="material-icons right">done</i>Terminer</a>`;
   }
   main.innerHTML = html;
 
