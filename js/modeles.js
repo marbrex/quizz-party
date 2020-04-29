@@ -71,10 +71,13 @@ document.getElementById('login-submit').onclick = () => {
 // Le bouton "Logout" est appue
 document.getElementById('logout-submit').onclick = () => {
   state.xApiKey = '';
-  console.log(`state.xApiKey = '${state.xApiKey}'`);
+  console.log(`logout => Deleting state.xApiKey`);
 
   state.user = undefined;
-  console.log(`state.user = ${state.user}`);
+  console.log(`logout => Deleting state.user`);
+
+  state.myQuizzes = undefined;
+  state.myAnswers = undefined;
 
   logedOut();
 };
@@ -187,27 +190,29 @@ const getQuestions = (quizId) => {
 // Bouton "Terminer" est clickable ssi
 // l'utilisateur a repondu a toutes les questions
 function onClickProp() {
+  console.log("@onClickProp()");
   setTimeout(() => {
     let nb = 0;
 
     state.questions.map((qstn) => {
       nb += document.querySelectorAll(`input[type=radio]:checked.input-qstn-${qstn.question_id}`).length;
     });
-    console.log("nb : " + nb);
+    console.log("@onClickProp() => Answered Questions Number : " + nb);
 
     if (nb === state.questions.length) {
+      console.log("@onClickProp() => All Questions Answered! Now you can send your answers.");
       document.getElementById('quiz-done-btn').classList.remove("disabled");
     }
   }, 100);
 }
 
 function showHideProps(qstn_id) {
-  document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-show');
+  document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-expanded');
   document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-collapsed');
 }
 
 const postAnswers = (quiz_id, qstn_id, prop_id) => {
-  console.debug(`@postProps(${quiz_id}, ${qstn_id}, ${prop_id})`);
+  console.debug(`@postAnswers(${quiz_id}, ${qstn_id}, ${prop_id})`);
   const url = `${state.serverUrl}/quizzes/${quiz_id}/questions/${qstn_id}/answers/${prop_id}`;
 
   let configObj = {
@@ -216,41 +221,82 @@ const postAnswers = (quiz_id, qstn_id, prop_id) => {
   };
 
   return fetch(url, configObj)
-  .then(filterHttpResponse)
-  .then((data) => {
-    console.log("postProps response : ");
-    console.log(data);
-    return data;
+  .then(resp => {
+    resp.json();
+    return resp;
+  })
+  .then((resp) => {
+    console.log(`@postAnswers(${quiz_id}, ${qstn_id}, ${prop_id}) => Response :`);
+    console.log(resp);
+    return resp;
   });
 };
 
 function onClickTerminer() {
-  console.log("Questions : ");
-  console.log(state.questions);
-  state.questions.map((qstn) => {
-    console.log("Propositions : ");
-    console.log(qstn.propositions);
-  });
+  console.log("@onClickTerminer()");
 
   let propsArr = new Array;
 
-  console.log("user : ");
+  console.log("@onClickTerminer() => user : ");
   console.log(state.user);
 
-  state.questions.map((qstn, index) => {
-    propsArr[index] = Number(document.querySelector(`input[type=radio]:checked.input-qstn-${qstn.question_id}`).value);
+  if (state.user) {
+    let responsePromisesArr = new Array;
+    
+    state.questions.map((qstn, index) => {
+      propsArr[index] = Number(document.querySelector(`input[type=radio]:checked.input-qstn-${qstn.question_id}`).value);
 
-    let jsonData = new Object({
-      user_id: state.user.user_id,
-      quiz_id: qstn.quiz_id,
-      question_id: qstn.question_id,
-      proposition_id: propsArr[index],
-      answered_at: new Date()
+      let jsonData = new Object({
+        user_id: state.user.user_id,
+        quiz_id: qstn.quiz_id,
+        question_id: qstn.question_id,
+        proposition_id: propsArr[index],
+        answered_at: new Date()
+      });
+
+      console.log("@onClickTerminer() => Data to send : ");
+      console.log(jsonData);
+
+      responsePromisesArr[index] = postAnswers(jsonData.quiz_id, jsonData.question_id, jsonData.proposition_id);
+
+      console.log("@onClickTerminer() => Promise Returned : ");
+      console.log(responsePromisesArr[index]);
     });
 
-    console.log("jsonData : ");
-    console.log(jsonData);
+    Promise.all(responsePromisesArr).then((respArr) => {
+      console.log("@onClickTerminer() => Response Array returned from the server : ");
+      console.log(respArr);
 
-    let response = postAnswers(jsonData.quiz_id, jsonData.question_id, jsonData.proposition_id);
-  });
+      let accumStatus = 0;
+      respArr.map(r => accumStatus += r.status);
+      accumStatus /= respArr.length;
+
+      switch (accumStatus) {
+        case 201:
+          M.toast({
+            html: 'Answers Saved !',
+            displayLength: 4000,
+            classes: 'success'
+          });
+          break;
+        case 403:
+          M.toast({
+            html: 'This Quizz is closed !',
+            displayLength: 4000,
+            classes: 'error'
+          });
+          break;
+      }
+
+      // to update user's answers
+      getMyAnswers();
+    });
+  }
+  else {
+    M.toast({
+      html: 'You have to login before !',
+      displayLength: 4000,
+      classes: 'error'
+    });
+  }
 }

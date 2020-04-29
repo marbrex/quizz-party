@@ -64,7 +64,7 @@
             <div class="nav-wrapper blue-grey">
               <a href="#" class="brand-logo center">Quizzz<i class="material-icons right">question_answer</i></a>
               <ul class="right hide-on-med-and-down">
-                <li>
+                <li id="search-block">
                   <form>
                     <div class="input-field  blue-grey lighten-3">
                       <input id="search" type="search" placeholder="Search" required />
@@ -110,7 +110,12 @@
             </div>
             <div class="col l8">
               <div id="id-all-quizzes-main">
-                <h4 class="center-align"><i class="material-icons">chevron_left</i>Select a quizz</h4>
+                <ul class="collection">
+                  <li class="collection-item cyan lighten-3 valign-wrapper quiz-status-bar">
+                    <i class="material-icons">chevron_left</i>
+                    <span>Select a quizz</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
