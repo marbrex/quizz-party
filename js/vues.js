@@ -18,7 +18,7 @@ const signedIn = () => {
 
   var loginBtnBlock = document.getElementById('login-btn').parentNode;
   loginBtnBlock.innerHTML = `
-                  <a id="logout-btn" class="waves-effect waves-light btn modal-trigger" href="#modal-logout">Logout</a>
+                  <a id="logout-btn" class="waves-effect waves-light btn cyan modal-trigger" href="#modal-logout">Logout</a>
                 `;
 };
 
@@ -28,11 +28,12 @@ const logedOut = () => {
 
   var logoutBtnBlock = document.getElementById('logout-btn').parentNode;
   logoutBtnBlock.innerHTML = `
-                  <a id="login-btn" class="waves-effect waves-light btn modal-trigger" href="#modal-login">Login</a>
+                  <a id="login-btn" class="waves-effect waves-light btn cyan modal-trigger" href="#modal-login">Login</a>
                 `;
 
   document.getElementById('id-my-quizzes-list').innerHTML = `<h4>Login to see your quizzes</h4>`;
   document.getElementById('id-my-answers-list').innerHTML = `<h4>Login to see your answers</h4>`;
+  document.getElementById('id-my-current-quiz').innerHTML = '';
 };
 
 // génération d'une liste de quizzes avec deux boutons en bas
@@ -136,11 +137,6 @@ function renderQuizzes() {
     document.querySelector(`li[data-quizzid="${quizzId}"]`).classList.toggle("lighten-5");
     document.querySelector(`li[data-quizzid="${quizzId}"]`).classList.toggle("lighten-4");
 
-    const addr = `${state.serverUrl}/quizzes/${quizzId}`;
-    const html = `
-      <p>Vous pourriez aller voir <a href="${addr}">${addr}</a>
-      ou <a href="${addr}/questions">${addr}/questions</a> pour ses questions<p>.`;
-    modal.children[0].innerHTML = html;
     state.currentQuizz = quizzId;
     // eslint-disable-next-line no-use-before-define
     getQuestions(state.currentQuizz);
@@ -152,19 +148,62 @@ function renderQuizzes() {
   });
 }
 
+// function createMyQuiz() {
+//   let body = document.getElementById('id-my-current-quiz');
+
+//   let html;
+
+//   html = `<div class="card-panel cyan lighten-5">
+//     <div class="input-field">
+//       <i class="material-icons prefix">mode_edit</i>
+//       <input id="quiz-title" type="text" class="validate">
+//       <label for="quiz-title">Title</label>
+//     </div>
+//     <div class="input-field">
+//       <i class="material-icons prefix">mode_edit</i>
+//       <textarea id="quiz-descr" class="materialize-textarea" data-length="120"></textarea>
+//       <label for="quiz-descr">Description</label>
+//     </div>
+//   </div>`;
+
+//   body.innerHTML = html;
+// }
+
 function renderMyQuizzes() {
   const listHtml = document.getElementById('id-my-quizzes-list');
 
-  let html = `<ul class="collection">`;
-  state.myQuizzes.map((q) => {
-    let createdDate = q.created_at.split('T')[0];
-    html += `<li class="collection-item cyan lighten-5 quizz-element" data-quizzid="${q.quiz_id}">
-      <h5>${q.title}</h5>
-      <p>${q.description}</p>
-      <a class="chip">Post Date : ${createdDate}</a>
-    </li>`;
-  });
-  html += `</ul>`;
+  let html = '';
+  if (state.myQuizzes.length === 0) {
+    html = `<h4>You don't have any quizzes</h4>`;
+  }
+  else {
+    html = `<nav class="myQuizzes-tool-bar">
+      <div class="nav-wrapper">
+        <ul class="left hide-on-med-and-down">
+          <li><a class="modal-trigger" href="#modal-create-quiz"><i class="material-icons left">add</i>Create</a></li>
+        </ul>
+      </div>
+    </nav>
+    <ul class="collection">`;
+    state.myQuizzes.map((q) => {
+      let createdDate = q.created_at.split('T')[0];
+      html += `<li class="collection-item cyan lighten-5 myquizzes-element" data-quizzid="${q.quiz_id}">
+        <h5>${q.title}</h5>
+        <p>${q.description}</p>
+        <a class="chip">Post Date : ${createdDate}</a>
+        <a class="chip">Quizz ID : ${q.quiz_id}</a>
+        <div class="row myquizzes-menu-btns">
+          <div class="col s6">
+            <a class="waves-effect waves-light btn-small cyan"><i class="material-icons left">delete</i>Delete</a>
+          </div>
+          <div class="col s6">
+            <a class="waves-effect waves-light btn-small cyan"><i class="material-icons left">create</i>Edit</a>
+          </div>
+        </div>
+      </li>`;
+    });
+    html += `</ul>`;
+  }
 
   listHtml.innerHTML = html;
 }
@@ -172,15 +211,28 @@ function renderMyQuizzes() {
 function renderMyAnswers() {
   const listHtml = document.getElementById('id-my-answers-list');
 
-  let html = `<ul class="collection">`;
-  state.myAnswers.map((answ) => {
-    html += `<li class="collection-item cyan lighten-5 quizz-element">
-      <h5>${answ.title}</h5>
-      <p>${answ.description}</p><a class="chip">Author : ${answ.owner_id}</a>
-      <a class="chip">Quizz ID : ${answ.quiz_id}</a>
-    </li>`;
-  });
-  html += `</ul>`;
+  let html = '';
+  if (state.myAnswers.length === 0) {
+    html = `<h4>You don't have answers</h4>`;
+  }
+  else {
+    html = `<nav class="myQuizzes-tool-bar">
+      <div class="nav-wrapper">
+        <ul class="left hide-on-med-and-down">
+          <li><span>${state.myAnswers.length} ${(state.myAnswers.length === 1) ? "answer" : "answers"}</span></li>
+        </ul>
+      </div>
+    </nav>
+    <ul class="collection">`;
+    state.myAnswers.map((answ) => {
+      html += `<li class="collection-item cyan lighten-5 quizz-element">
+        <h5>${answ.title}</h5>
+        <p>${answ.description}</p><a class="chip">Author : ${answ.owner_id}</a>
+        <a class="chip">Quizz ID : ${answ.quiz_id}</a>
+      </li>`;
+    });
+    html += `</ul>`;
+  }
 
   listHtml.innerHTML = html;
 }
@@ -206,18 +258,26 @@ function renderCurrentQuizz() {
   let questionsArr = state.questions;
 
   if (questionsArr.length === 0) {
-    html = `<ul class="collection">
-      <li class="collection-item cyan lighten-3 valign-wrapper quiz-status-bar">
-        <i class="material-icons">sentiment_dissatisfied</i>
-        <span>This quizz doesn't have any questions !</span>
-      </li>
-    </ul>`;
+    html = `<nav class="myQuizzes-tool-bar">
+      <div class="nav-wrapper">
+        <ul class="left hide-on-med-and-down">
+          <li class="valign-wrapper">
+            <i class="material-icons">sentiment_dissatisfied</i>
+            <span>This quizz doesn't have any questions !</span>
+          </li>
+        </ul>
+      </div>
+    </nav>`;
   }
   else {
-    html = `<ul class="collection">
-      <li class="collection-item cyan lighten-3 quiz-status-bar">
-        <span>${questionsArr.length} ${(questionsArr.length === 1) ? "question" : "questions"}</span>
-      </li>`;
+    html = `<nav class="myQuizzes-tool-bar">
+      <div class="nav-wrapper">
+        <ul class="left hide-on-med-and-down">
+          <li><span>${questionsArr.length} ${(questionsArr.length === 1) ? "question" : "questions"}</span></li>
+        </ul>
+      </div>
+    </nav>
+    <ul class="collection">`;
     questionsArr.map((qstn) => {
       html += `<li class="collection-item cyan lighten-4 quiz-question">
         <p>Question ${qstn.question_id+1} :</p>
@@ -247,7 +307,7 @@ function renderCurrentQuizz() {
       html += `</ul>`;
     });
     html += `</ul>
-    <a id="quiz-done-btn" class="waves-effect waves-light btn disabled" onclick="onClickTerminer()"><i class="material-icons right">done</i>Terminer</a>`;
+    <a id="quiz-done-btn" class="waves-effect waves-light btn disabled cyan" onclick="onClickTerminer()"><i class="material-icons right">done</i>Terminer</a>`;
   }
   main.innerHTML = html;
 

@@ -58,13 +58,35 @@ document.getElementById('login-submit').onclick = () => {
   fetch(url, { method: 'GET', headers: state.headers })
     .then(filterHttpResponse)
     .then((data) => {
+      console.log('@login => Data : ');
+      console.log(data);
       state.user = data;
 
-      modifyWelcomeModalHtml();
-      signedIn();
+      if (state.user === undefined) {
+        M.toast({
+          html: 'Your X-Api-Key is not valid!',
+          displayLength: 4000,
+          classes: 'error'
+        });
+      }
+
+      if (state.user) {
+        let elem = document.querySelector('#modal-login');
+        let instance = M.Modal.getInstance(elem);
+        instance.close();
+
+        modifyWelcomeModalHtml();
+        let elemWelcome = document.querySelector('#modal-welcome');
+        let instanceWelcome = M.Modal.getInstance(elemWelcome);
+        instanceWelcome.open();
+
+        signedIn();
+      }
     }).then(() => {
-      getMyQuizzes();
-      getMyAnswers();
+      if (state.user) {
+        getMyQuizzes();
+        getMyAnswers();
+      }
     });
 };
 
@@ -165,6 +187,43 @@ const getMyAnswers = () => {
     });
 };
 
+const postQuiz = (quiz_title, quiz_descr) => {
+  console.debug(`@postQuiz(${quiz_title}, ${quiz_descr})`);
+  const url = `${state.serverUrl}/quizzes/`;
+
+  let configObj = {
+    method: 'POST',
+    headers: state.headers,
+    body: JSON.stringify({
+      title: quiz_title,
+      description: quiz_descr
+    })
+  };
+
+  return fetch(url, configObj)
+  .then(filterHttpResponse)
+  .then((data) => {
+    console.log(`@postQuiz(${quiz_title}, ${quiz_descr}) => Data :`);
+    console.log(data);
+
+    // To update list of user's quizzes
+    getMyQuizzes();
+    return data;
+  });
+};
+
+const createNewQuiz = (quiz_title, quiz_descr) => {
+  if (quiz_title === undefined)
+    quiz_title = document.querySelector('#modal-create-quiz #quiz-title').value;
+  if (quiz_descr === undefined)
+    quiz_descr = document.querySelector('#modal-create-quiz #quiz-descr').value;
+
+  document.querySelector('#modal-create-quiz #quiz-title').value = '';
+  document.querySelector('#modal-create-quiz #quiz-descr').value = '';
+
+  postQuiz(quiz_title, quiz_descr);
+};
+
 // //////////////////////////////////////////////////////////////////////////////
 // DONNEES DES QUESTIONS
 // //////////////////////////////////////////////////////////////////////////////
@@ -182,6 +241,40 @@ const getQuestions = (quizId) => {
       return renderCurrentQuizz();
     });
 };
+
+// const postQuestion = (quiz_id) => {
+//   console.debug(`@postQuestion(${quiz_id})`);
+//   const url = `${state.serverUrl}/quizzes/${quiz_id}/questions`;
+
+//   let configObj = {
+//     method: 'POST',
+//     headers: state.headers,
+//     body: JSON.stringify({
+//       question_id: 0,
+//       sentence: "Who is flying there?",
+//       propositions: [
+//       {
+//         content: "Alan Turing",
+//         proposition_id: 0,
+//         correct: false
+//       },
+//       {
+//         content: "Alonzo Church",
+//         proposition_id: 1,
+//         correct: true
+//       }]
+//     })
+//   };
+
+//   return fetch(url, configObj)
+//   .then(filterHttpResponse)
+//   .then((data) => {
+//     console.log(`@postQuestion(${quiz_id}) => Data :`);
+//     console.log(data);
+
+//     return data;
+//   });
+// };
 
 // //////////////////////////////////////////////////////////////////////////////
 // PROPOSITIONS

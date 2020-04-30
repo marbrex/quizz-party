@@ -98,3 +98,32 @@ ul.collection.propositions-block-expanded li {
 	font-weight: bold;
 	background-color: #eeeeee;
 }
+
+.myQuizzes-tool-bar {
+	background-color: #80deea;
+	height: 45px;
+	line-height: 45px;
+	margin: 10px 0;
+	padding: 0 20px;
+	font-weight: bold;
+}
+
+.myQuizzes-tool-bar .nav-wrapper i {
+	height: 45px;
+	line-height: 45px;
+}
+
+#login-submit {
+	color: cyan;
+	cursor: pointer;
+}
+
+.row.myquizzes-menu-btns {
+	margin-top: 15px;
+}
+
+.row.myquizzes-menu-btns a {
+	height: 100%;
+	width: 100%;
+	font-weight: bold;
+}
