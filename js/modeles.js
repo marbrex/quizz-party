@@ -58,13 +58,35 @@ document.getElementById('login-submit').onclick = () => {
   fetch(url, { method: 'GET', headers: state.headers })
     .then(filterHttpResponse)
     .then((data) => {
+      console.log('@login => Data : ');
+      console.log(data);
       state.user = data;
 
-      modifyWelcomeModalHtml();
-      signedIn();
+      if (state.user === undefined) {
+        M.toast({
+          html: 'Your X-Api-Key is not valid!',
+          displayLength: 4000,
+          classes: 'error'
+        });
+      }
+
+      if (state.user) {
+        let elem = document.querySelector('#modal-login');
+        let instance = M.Modal.getInstance(elem);
+        instance.close();
+
+        modifyWelcomeModalHtml();
+        let elemWelcome = document.querySelector('#modal-welcome');
+        let instanceWelcome = M.Modal.getInstance(elemWelcome);
+        instanceWelcome.open();
+
+        signedIn();
+      }
     }).then(() => {
-      getMyQuizzes();
-      getMyAnswers();
+      if (state.user) {
+        getMyQuizzes();
+        getMyAnswers();
+      }
     });
 };
 
@@ -165,6 +187,105 @@ const getMyAnswers = () => {
     });
 };
 
+const postQuiz = (quiz_title, quiz_descr) => {
+  console.debug(`@postQuiz(${quiz_title}, ${quiz_descr})`);
+  const url = `${state.serverUrl}/quizzes/`;
+
+  let configObj = {
+    method: 'POST',
+    headers: state.headers,
+    body: JSON.stringify({
+      title: quiz_title,
+      description: quiz_descr
+    })
+  };
+
+  return fetch(url, configObj)
+  .then(filterHttpResponse)
+  .then((data) => {
+    console.log(`@postQuiz(${quiz_title}, ${quiz_descr}) => Data :`);
+    console.log(data);
+
+    // To update list of user's quizzes
+    getMyQuizzes();
+    return data;
+  });
+};
+
+const createNewQuiz = (quiz_title, quiz_descr) => {
+  if (quiz_title === undefined)
+    quiz_title = document.querySelector('#modal-create-quiz #quiz-title').value;
+  if (quiz_descr === undefined)
+    quiz_descr = document.querySelector('#modal-create-quiz #quiz-descr').value;
+
+  document.querySelector('#modal-create-quiz #quiz-title').value = '';
+  document.querySelector('#modal-create-quiz #quiz-descr').value = '';
+
+  postQuiz(quiz_title, quiz_descr);
+};
+
+const getOneQuiz = (quizId) => {
+  console.debug(`@getOneQuiz(${quizId})`);
+  const url = `${state.serverUrl}/quizzes/${quizId}/`;
+
+  return fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+      console.log(`@getOneQuiz(${quizId}) => Data :`);
+      console.log(data);
+
+      return data;
+    });
+};
+
+const deleteQuiz = (quizId) => {
+  console.debug(`@deleteQuiz(${quizId})`);
+  const url = `${state.serverUrl}/quizzes/${quizId}/`;
+
+  return fetch(url, { method: 'DELETE', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+      console.log(`@deleteQuiz(${quizId}) => Data :`);
+      console.log(data);
+
+      getMyQuizzes();
+
+      return data;
+    });
+};
+
+const updateQuiz = (quiz_id) => {
+  let quiz_title = document.getElementById('input-change-quiz-title').value;
+  let quiz_descr = document.getElementById('input-change-quiz-description').value;
+  let quiz_open = document.getElementById('input-change-quiz-open').checked;
+
+  console.debug(`@updateQuiz(${quiz_id})`);
+  const url = `${state.serverUrl}/quizzes/${quiz_id}`;
+
+  let configObj = {
+    method: 'PUT',
+    headers: state.headers,
+    body: JSON.stringify({
+      title: quiz_title,
+      description: quiz_descr,
+      open: quiz_open
+    })
+  };
+
+  return fetch(url, configObj)
+    .then(filterHttpResponse)
+    .then((data) => {
+      console.log(`@updateQuiz(${quiz_id}) => Data :`);
+      console.log(data);
+
+      // To update
+      getMyQuizzes();
+      getMyQuestions(quiz_id);
+
+      return data;
+    });
+};
+
 // //////////////////////////////////////////////////////////////////////////////
 // DONNEES DES QUESTIONS
 // //////////////////////////////////////////////////////////////////////////////
@@ -180,6 +301,114 @@ const getQuestions = (quizId) => {
 
       // console.log(state.questions);
       return renderCurrentQuizz();
+    });
+};
+
+const getMyQuestions = (quizId) => {
+  console.debug(`@getMyQuestions(${quizId})`);
+  const url = `${state.serverUrl}/quizzes/${quizId}/questions/`;
+
+  return fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+      state.myCurrentQuiz = quizId;
+      state.myQuestions = data;
+
+      // console.log(state.questions);
+      return renderMyCurrentQuiz();
+    });
+};
+
+const deleteQuestion = (quizId, qstnId) => {
+  console.debug(`@deleteQuestion(${quizId})`);
+  const url = `${state.serverUrl}/quizzes/${quizId}/questions/${qstnId}`;
+
+  return fetch(url, { method: 'DELETE', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+      console.log(`@deleteQuestion(${quizId}) => Data :`);
+      console.log(data);
+
+      getMyQuestions(quizId);
+
+      return data;
+    });
+};
+
+const postQuestion = (quiz_id) => {
+  let quiz = getOneQuiz(quiz_id);
+  quiz.then((quiz) => {
+    console.log(`@postQuestion(${quiz_id}) => Quiz :`);
+    console.log(quiz);
+
+    let qstn_id = quiz.questions_number;
+
+    while (quiz.questions_ids.includes(qstn_id)) {
+      qstn_id++;
+    }
+
+    return qstn_id;
+  })
+  .then((qstn_id) => {
+    let qstn = document.getElementById('input-add-question').value;
+    let qstn_props = [];
+
+    console.log(`@postQuestion(${quiz_id}, "${qstn}", ${qstn_props}) => Qstn Id :`);
+    console.log(qstn_id);
+
+    console.debug(`@postQuestion(${quiz_id}, "${qstn}", ${qstn_props})`);
+    const url = `${state.serverUrl}/quizzes/${quiz_id}/questions`;
+
+    let configObj = {
+      method: 'POST',
+      headers: state.headers,
+      body: JSON.stringify({
+        question_id: qstn_id,
+        sentence: qstn,
+        propositions: qstn_props
+      })
+    };
+
+    return fetch(url, configObj)
+      .then(filterHttpResponse)
+      .then((data) => {
+        console.log(`@postQuestion(${quiz_id}, "${qstn}", ${qstn_props}) => Data :`);
+        console.log(data);
+
+        // To update
+        getMyQuestions(quiz_id);
+
+        return data;
+      });
+  });
+};
+
+const updateQuestion = (quiz_id, qstn_id) => {
+  let qstn = document.getElementById('input-edit-question').value;
+  let qstn_props = [];
+
+  console.debug(`@updateQuestion(${quiz_id}, ${qstn_id})`);
+  const url = `${state.serverUrl}/quizzes/${quiz_id}/questions/${qstn_id}`;
+
+  let configObj = {
+    method: 'PUT',
+    headers: state.headers,
+    body: JSON.stringify({
+      sentence: qstn,
+      propositions: qstn_props
+    })
+  };
+
+  return fetch(url, configObj)
+    .then(filterHttpResponse)
+    .then((data) => {
+      console.log(`@updateQuestion(${quiz_id}, ${qstn_id}) => Data :`);
+      console.log(data);
+
+      // To update
+      getMyQuestions(quiz_id);
+
+      return data;
     });
 };
 
@@ -299,4 +528,11 @@ function onClickTerminer() {
       classes: 'error'
     });
   }
+}
+
+function onClickMyQuizBtn(quiz_id, action, qstn_id = 0) {
+  modifyMyQuizModal(quiz_id, action, qstn_id);
+  let modal = document.querySelector(`#modal-template`);
+  let instance = M.Modal.getInstance(modal);
+  instance.open();
 }
