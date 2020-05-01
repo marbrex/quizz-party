@@ -224,6 +224,68 @@ const createNewQuiz = (quiz_title, quiz_descr) => {
   postQuiz(quiz_title, quiz_descr);
 };
 
+const getOneQuiz = (quizId) => {
+  console.debug(`@getOneQuiz(${quizId})`);
+  const url = `${state.serverUrl}/quizzes/${quizId}/`;
+
+  return fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+      console.log(`@getOneQuiz(${quizId}) => Data :`);
+      console.log(data);
+
+      return data;
+    });
+};
+
+const deleteQuiz = (quizId) => {
+  console.debug(`@deleteQuiz(${quizId})`);
+  const url = `${state.serverUrl}/quizzes/${quizId}/`;
+
+  return fetch(url, { method: 'DELETE', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+      console.log(`@deleteQuiz(${quizId}) => Data :`);
+      console.log(data);
+
+      getMyQuizzes();
+
+      return data;
+    });
+};
+
+const updateQuiz = (quiz_id) => {
+  let quiz_title = document.getElementById('input-change-quiz-title').value;
+  let quiz_descr = document.getElementById('input-change-quiz-description').value;
+  let quiz_open = document.getElementById('input-change-quiz-open').checked;
+
+  console.debug(`@updateQuiz(${quiz_id})`);
+  const url = `${state.serverUrl}/quizzes/${quiz_id}`;
+
+  let configObj = {
+    method: 'PUT',
+    headers: state.headers,
+    body: JSON.stringify({
+      title: quiz_title,
+      description: quiz_descr,
+      open: quiz_open
+    })
+  };
+
+  return fetch(url, configObj)
+    .then(filterHttpResponse)
+    .then((data) => {
+      console.log(`@updateQuiz(${quiz_id}) => Data :`);
+      console.log(data);
+
+      // To update
+      getMyQuizzes();
+      getMyQuestions(quiz_id);
+
+      return data;
+    });
+};
+
 // //////////////////////////////////////////////////////////////////////////////
 // DONNEES DES QUESTIONS
 // //////////////////////////////////////////////////////////////////////////////
@@ -242,39 +304,113 @@ const getQuestions = (quizId) => {
     });
 };
 
-// const postQuestion = (quiz_id) => {
-//   console.debug(`@postQuestion(${quiz_id})`);
-//   const url = `${state.serverUrl}/quizzes/${quiz_id}/questions`;
+const getMyQuestions = (quizId) => {
+  console.debug(`@getMyQuestions(${quizId})`);
+  const url = `${state.serverUrl}/quizzes/${quizId}/questions/`;
 
-//   let configObj = {
-//     method: 'POST',
-//     headers: state.headers,
-//     body: JSON.stringify({
-//       question_id: 0,
-//       sentence: "Who is flying there?",
-//       propositions: [
-//       {
-//         content: "Alan Turing",
-//         proposition_id: 0,
-//         correct: false
-//       },
-//       {
-//         content: "Alonzo Church",
-//         proposition_id: 1,
-//         correct: true
-//       }]
-//     })
-//   };
+  return fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+      state.myCurrentQuiz = quizId;
+      state.myQuestions = data;
 
-//   return fetch(url, configObj)
-//   .then(filterHttpResponse)
-//   .then((data) => {
-//     console.log(`@postQuestion(${quiz_id}) => Data :`);
-//     console.log(data);
+      // console.log(state.questions);
+      return renderMyCurrentQuiz();
+    });
+};
 
-//     return data;
-//   });
-// };
+const deleteQuestion = (quizId, qstnId) => {
+  console.debug(`@deleteQuestion(${quizId})`);
+  const url = `${state.serverUrl}/quizzes/${quizId}/questions/${qstnId}`;
+
+  return fetch(url, { method: 'DELETE', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+      console.log(`@deleteQuestion(${quizId}) => Data :`);
+      console.log(data);
+
+      getMyQuestions(quizId);
+
+      return data;
+    });
+};
+
+const postQuestion = (quiz_id) => {
+  let quiz = getOneQuiz(quiz_id);
+  quiz.then((quiz) => {
+    console.log(`@postQuestion(${quiz_id}) => Quiz :`);
+    console.log(quiz);
+
+    let qstn_id = quiz.questions_number;
+
+    while (quiz.questions_ids.includes(qstn_id)) {
+      qstn_id++;
+    }
+
+    return qstn_id;
+  })
+  .then((qstn_id) => {
+    let qstn = document.getElementById('input-add-question').value;
+    let qstn_props = [];
+
+    console.log(`@postQuestion(${quiz_id}, "${qstn}", ${qstn_props}) => Qstn Id :`);
+    console.log(qstn_id);
+
+    console.debug(`@postQuestion(${quiz_id}, "${qstn}", ${qstn_props})`);
+    const url = `${state.serverUrl}/quizzes/${quiz_id}/questions`;
+
+    let configObj = {
+      method: 'POST',
+      headers: state.headers,
+      body: JSON.stringify({
+        question_id: qstn_id,
+        sentence: qstn,
+        propositions: qstn_props
+      })
+    };
+
+    return fetch(url, configObj)
+      .then(filterHttpResponse)
+      .then((data) => {
+        console.log(`@postQuestion(${quiz_id}, "${qstn}", ${qstn_props}) => Data :`);
+        console.log(data);
+
+        // To update
+        getMyQuestions(quiz_id);
+
+        return data;
+      });
+  });
+};
+
+const updateQuestion = (quiz_id, qstn_id) => {
+  let qstn = document.getElementById('input-edit-question').value;
+  let qstn_props = [];
+
+  console.debug(`@updateQuestion(${quiz_id}, ${qstn_id})`);
+  const url = `${state.serverUrl}/quizzes/${quiz_id}/questions/${qstn_id}`;
+
+  let configObj = {
+    method: 'PUT',
+    headers: state.headers,
+    body: JSON.stringify({
+      sentence: qstn,
+      propositions: qstn_props
+    })
+  };
+
+  return fetch(url, configObj)
+    .then(filterHttpResponse)
+    .then((data) => {
+      console.log(`@updateQuestion(${quiz_id}, ${qstn_id}) => Data :`);
+      console.log(data);
+
+      // To update
+      getMyQuestions(quiz_id);
+
+      return data;
+    });
+};
 
 // //////////////////////////////////////////////////////////////////////////////
 // PROPOSITIONS
@@ -392,4 +528,11 @@ function onClickTerminer() {
       classes: 'error'
     });
   }
+}
+
+function onClickMyQuizBtn(quiz_id, action, qstn_id = 0) {
+  modifyMyQuizModal(quiz_id, action, qstn_id);
+  let modal = document.querySelector(`#modal-template`);
+  let instance = M.Modal.getInstance(modal);
+  instance.open();
 }

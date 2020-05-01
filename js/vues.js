@@ -188,16 +188,20 @@ function renderMyQuizzes() {
     state.myQuizzes.map((q) => {
       let createdDate = q.created_at.split('T')[0];
       html += `<li class="collection-item cyan lighten-5 myquizzes-element" data-quizzid="${q.quiz_id}">
+        ${(q.open) ?
+          '<span class="new badge blue" data-badge-caption="open"></span>' : 
+          '<span class="new badge red" data-badge-caption="closed"></span>'
+        }
         <h5>${q.title}</h5>
         <p>${q.description}</p>
         <a class="chip">Post Date : ${createdDate}</a>
         <a class="chip">Quizz ID : ${q.quiz_id}</a>
         <div class="row myquizzes-menu-btns">
           <div class="col s6">
-            <a class="waves-effect waves-light btn-small cyan"><i class="material-icons left">delete</i>Delete</a>
+            <a class="waves-effect waves-light btn-small cyan" onclick="deleteQuiz(${q.quiz_id})"><i class="material-icons left">delete</i>Delete</a>
           </div>
           <div class="col s6">
-            <a class="waves-effect waves-light btn-small cyan"><i class="material-icons left">create</i>Edit</a>
+            <a class="waves-effect waves-light btn-small cyan" onclick="getMyQuestions(${q.quiz_id})"><i class="material-icons left">create</i>Edit</a>
           </div>
         </div>
       </li>`;
@@ -206,6 +210,110 @@ function renderMyQuizzes() {
   }
 
   listHtml.innerHTML = html;
+
+  const myCurrentQuizHtml = document.getElementById('id-my-current-quiz');
+  myCurrentQuizHtml.innerHTML = `<nav class="myQuizzes-tool-bar">
+    <div class="nav-wrapper">
+      <ul class="left hide-on-med-and-down">
+        <li class="status-message valign-wrapper">
+          <i class="material-icons">chevron_left</i>
+          <span>Select a quizz to add, edit or remove questions / propositions</span>
+        </li>
+      </ul>
+    </div>
+  </nav>`;
+}
+
+function renderMyCurrentQuiz() {
+  const main = document.getElementById('id-my-current-quiz');
+
+  let html = '';
+  let myQuestionsArr = state.myQuestions;
+
+  console.log("myQuestions: ");
+  console.log(state.myQuestions);
+
+  console.log("Quizzes: ");
+  console.log(state.quizzes);
+
+  let myQuiz_id = state.myCurrentQuiz;
+
+  if (myQuestionsArr.length === 0) {
+    html = `<nav class="myQuizzes-tool-bar">
+      <div class="nav-wrapper">
+        <ul class="left hide-on-med-and-down">
+          <li class="status-message valign-wrapper">
+            <i class="material-icons">sentiment_dissatisfied</i>
+            <span>This quizz doesn't have any questions !</span>
+          </li>
+          <li><a onclick="onClickMyQuizBtn(${myQuiz_id},'add-question')"><i class="material-icons left">add</i>Add Question</a></li>
+          <li><a onclick="onClickMyQuizBtn(${myQuiz_id},'edit-quiz')"><i class="material-icons left">create</i>Edit Quiz</a></li>
+        </ul>
+      </div>
+    </nav>`;
+  }
+  else {
+    html = `<nav class="myQuizzes-tool-bar">
+      <div class="nav-wrapper">
+        <ul class="left hide-on-med-and-down">
+          <li class="status-message"><span>${myQuestionsArr.length} ${(myQuestionsArr.length === 1) ? "question" : "questions"}</span></li>
+          <li><a onclick="onClickMyQuizBtn(${myQuiz_id},'add-question')"><i class="material-icons left">add</i>Add Question</a></li>
+          <li><a onclick="onClickMyQuizBtn(${myQuiz_id},'edit-quiz')"><i class="material-icons left">create</i>Edit Quiz</a></li>
+        </ul>
+      </div>
+    </nav>
+    <ul class="collection">`;
+    myQuestionsArr.map((qstn, index) => {
+      html += `<li class="collection-item cyan lighten-4 quiz-question">
+        <div class="row valign-wrapper">
+          <span class="col quiz-qstn-nb">Question ${index+1} :</span>
+          <a class="col myQuiz-edit-prop-btn valign-wrapper" onclick="onClickMyQuizBtn(${myQuiz_id}, 'edit-question', ${qstn.question_id})">
+            <i class="material-icons">create</i>
+            Edit Question
+          </a>
+          <a class="col myQuiz-remove-prop-btn valign-wrapper" onclick="deleteQuestion(${myQuiz_id}, ${qstn.question_id})">
+            <i class="material-icons">delete</i>
+            Remove Question
+          </a>
+        </div>
+        <p class="quiz-qstn-sentence">
+          ${qstn.sentence}
+          <i id="question-drop-down-btn-${qstn.question_id}" class="material-icons question-drop-down-btn" onclick="showHideProps(${qstn.question_id})">arrow_drop_down</i>
+        </p>
+        <ul id="qstn-${qstn.question_id}-props" class="collection propositions-block-expanded">`;
+      let propositionsArr = qstn.propositions;
+      if (propositionsArr.length === 0) {
+        html += `<li class="collection-item cyan lighten-4 question-proposition">
+          <p>This Question doesn't have any propositions</p>
+        </li>`;
+      }
+      else {
+        propositionsArr.map((prop) => {
+          html += `<li class="collection-item cyan lighten-4 question-proposition row">
+            <p class="col">${prop.proposition_id+1}) ${prop.content}</p>
+            <a class="myQuiz-edit-prop-btn valign-wrapper col">
+              <i class="material-icons">create</i>
+              Edit
+            </a>
+            <a class="myQuiz-remove-prop-btn valign-wrapper col">
+              <i class="material-icons">delete</i>
+              Remove
+            </a>
+          </li>`;
+        });
+      }
+      html += `<li class="collection-item cyan lighten-4">
+        <a class="myQuiz-add-prop-btn">
+          <i class="material-icons left">add</i>
+          Add Proposition
+        </a>
+      </li>
+      </ul>`;
+    });
+    html += `</ul>`;
+  }
+
+  main.innerHTML = html;
 }
 
 function renderMyAnswers() {
@@ -261,7 +369,7 @@ function renderCurrentQuizz() {
     html = `<nav class="myQuizzes-tool-bar">
       <div class="nav-wrapper">
         <ul class="left hide-on-med-and-down">
-          <li class="valign-wrapper">
+          <li class="status-message valign-wrapper">
             <i class="material-icons">sentiment_dissatisfied</i>
             <span>This quizz doesn't have any questions !</span>
           </li>
@@ -273,15 +381,15 @@ function renderCurrentQuizz() {
     html = `<nav class="myQuizzes-tool-bar">
       <div class="nav-wrapper">
         <ul class="left hide-on-med-and-down">
-          <li><span>${questionsArr.length} ${(questionsArr.length === 1) ? "question" : "questions"}</span></li>
+          <li class="status-message"><span>${questionsArr.length} ${(questionsArr.length === 1) ? "question" : "questions"}</span></li>
         </ul>
       </div>
     </nav>
     <ul class="collection">`;
-    questionsArr.map((qstn) => {
+    questionsArr.map((qstn, index) => {
       html += `<li class="collection-item cyan lighten-4 quiz-question">
-        <p>Question ${qstn.question_id+1} :</p>
-        <p>
+        <p class="quiz-qstn-nb">Question ${index+1} :</p>
+        <p class="quiz-qstn-sentence">
           ${qstn.sentence}
           <i id="question-drop-down-btn-${qstn.question_id}" class="material-icons question-drop-down-btn" onclick="showHideProps(${qstn.question_id})">arrow_drop_down</i>
         </p>
@@ -359,3 +467,63 @@ const renderUserBtn = () => {
     }
   };
 };
+
+function modifyMyQuizModal (quiz_id, action, qstn_id = 0) {
+  // let modal_html = document.getElementById('modal-template');
+  let modal_title = document.getElementById('modal-template-title');
+  let modal_body = document.getElementById('modal-template-body');
+  let modal_footer = document.querySelector('#modal-template .modal-footer');
+
+  switch (action) {
+    case 'add-question':
+
+      modal_title.innerHTML = 'Add Question';
+      modal_body.innerHTML = `<div class="input-field">
+        <input id="input-add-question" type="text" class="validate">
+        <label for="input-add-question">Question</label>
+      </div>`;
+      modal_footer.innerHTML = `
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+      <a onclick="postQuestion(${quiz_id})" id="modal-template-okBtn" href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>`;
+
+      break;
+
+    case 'edit-quiz':
+
+      modal_title.innerHTML = 'Edit Quiz';
+      modal_body.innerHTML = `<div class="input-field">
+        <input id="input-change-quiz-title" type="text" class="validate">
+        <label for="input-change-quiz-title">Title</label>
+      </div>
+      <div class="input-field">
+        <textarea id="input-change-quiz-description" class="materialize-textarea" data-length="120"></textarea>
+        <label for="input-change-quiz-description">Description</label>
+      </div>
+      <div class="switch">
+        <label>
+          Closed
+          <input id="input-change-quiz-open" type="checkbox" value="open" checked>
+          <span class="lever"></span>
+          Open
+        </label>
+      </div>`;
+      modal_footer.innerHTML = `
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+      <a onclick="updateQuiz(${quiz_id})" id="modal-template-okBtn" href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>`;
+
+      break;
+
+    case 'edit-question':
+
+      modal_title.innerHTML = 'Edit Question';
+      modal_body.innerHTML = `<div class="input-field">
+        <textarea id="input-edit-question" class="materialize-textarea" data-length="120"></textarea>
+        <label for="input-edit-question">New Question</label>
+      </div>`;
+      modal_footer.innerHTML = `
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+      <a onclick="updateQuestion(${quiz_id},${qstn_id})" id="modal-template-okBtn" href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>`;
+
+      break;
+  }
+}

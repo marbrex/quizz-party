@@ -17,12 +17,22 @@ li.quizz-element {
 	cursor: pointer;
 }
 
-.quiz-question > p:first-of-type,
+.quiz-question .quiz-qstn-nb,
 .quiz-status-bar > span {
 	font-weight: bold;
 }
 
-.quiz-question > p:nth-child(2) {
+.quiz-question .quiz-qstn-nb {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.quiz-question > div.row {
+	margin-top: 14.5px;
+	margin-bottom: 0;
+}
+
+.quiz-question .quiz-qstn-sentence {
 	font-size: 18px;
 }
 
@@ -113,6 +123,11 @@ ul.collection.propositions-block-expanded li {
 	line-height: 45px;
 }
 
+.myQuizzes-tool-bar .status-message {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
 #login-submit {
 	color: cyan;
 	cursor: pointer;
@@ -126,4 +141,26 @@ ul.collection.propositions-block-expanded li {
 	height: 100%;
 	width: 100%;
 	font-weight: bold;
+}
+
+#id-my-current-quiz > .collection {
+	border: none;
+}
+
+.myQuiz-add-prop-btn,
+.myQuiz-remove-prop-btn,
+.myQuiz-edit-prop-btn {
+	cursor: pointer;
+}
+
+.myQuiz-add-prop-btn {
+	color: #0097a7;
+}
+
+.myQuiz-remove-prop-btn {
+	color: #d32f2f;
+}
+
+.myQuiz-edit-prop-btn {
+	color: #ffa000;
 }
