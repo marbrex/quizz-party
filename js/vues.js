@@ -148,27 +148,6 @@ function renderQuizzes() {
   });
 }
 
-// function createMyQuiz() {
-//   let body = document.getElementById('id-my-current-quiz');
-
-//   let html;
-
-//   html = `<div class="card-panel cyan lighten-5">
-//     <div class="input-field">
-//       <i class="material-icons prefix">mode_edit</i>
-//       <input id="quiz-title" type="text" class="validate">
-//       <label for="quiz-title">Title</label>
-//     </div>
-//     <div class="input-field">
-//       <i class="material-icons prefix">mode_edit</i>
-//       <textarea id="quiz-descr" class="materialize-textarea" data-length="120"></textarea>
-//       <label for="quiz-descr">Description</label>
-//     </div>
-//   </div>`;
-
-//   body.innerHTML = html;
-// }
-
 function renderMyQuizzes() {
   const listHtml = document.getElementById('id-my-quizzes-list');
 
@@ -290,25 +269,25 @@ function renderMyCurrentQuiz() {
       else {
         propositionsArr.map((prop) => {
           html += `<li class="collection-item cyan lighten-4 question-proposition row">
-            <p class="col">${prop.proposition_id+1}) ${prop.content}</p>
-            <a class="myQuiz-edit-prop-btn valign-wrapper col">
-              <i class="material-icons">create</i>
-              Edit
-            </a>
-            <a class="myQuiz-remove-prop-btn valign-wrapper col">
-              <i class="material-icons">delete</i>
-              Remove
-            </a>
-          </li>`;
+            <p class="col">${prop.proposition_id+1}) ${prop.content}</p>`;
+          // html += `<a class="myQuiz-edit-prop-btn valign-wrapper col">
+          //     <i class="material-icons">create</i>
+          //     Edit
+          //   </a>
+          //   <a class="myQuiz-remove-prop-btn valign-wrapper col">
+          //     <i class="material-icons">delete</i>
+          //     Remove
+          //   </a>`;
+          html += `</li>`;
         });
       }
-      html += `<li class="collection-item cyan lighten-4">
-        <a class="myQuiz-add-prop-btn">
-          <i class="material-icons left">add</i>
-          Add Proposition
-        </a>
-      </li>
-      </ul>`;
+      // html += `<li class="collection-item cyan lighten-4">
+      //   <a class="myQuiz-add-prop-btn">
+      //     <i class="material-icons left">add</i>
+      //     Add Proposition
+      //   </a>
+      // </li>`;
+      html += `</ul>`;
     });
     html += `</ul>`;
   }
@@ -348,20 +327,6 @@ function renderMyAnswers() {
 function renderCurrentQuizz() {
   const main = document.getElementById('id-all-quizzes-main');
 
-  // let html = `<ul class="collection">`;
-  // // console.log(state.quizzes);
-  // var quizzesArr = state.quizzes.results;
-  // console.log(quizzesArr);
-  // var myQuiz = quizzesArr.find(o => o.quiz_id == state.currentQuizz);
-  // // console.log(myQuiz);
-  // Object.keys(myQuiz).map(function(objectKey, index) {
-  //   var value = myQuiz[objectKey];
-  //   html += `<li class="collection-item cyan lighten-5">
-  //     ${objectKey} = ${value}
-  //   </li>`;
-  // });
-  // html += `</ul>`;
-  // main.innerHTML = html;
   let html;
   let questionsArr = state.questions;
 
@@ -418,35 +383,6 @@ function renderCurrentQuizz() {
     <a id="quiz-done-btn" class="waves-effect waves-light btn disabled cyan" onclick="onClickTerminer()"><i class="material-icons right">done</i>Terminer</a>`;
   }
   main.innerHTML = html;
-
-  // let html = `<ul class="collapsible expandable">`;
-  // let questionsArr = state.questions;
-  // questionsArr.map((qstn) => {
-  //   html += `<li class="active">
-  //     <div class="collapsible-header">
-  //       <p>Question ${qstn.question_id+1} : </p>
-  //       <p>
-  //         ${qstn.sentence}
-  //       </p>
-  //     </div>
-  //     <div class="collapsible-body">
-  //       <ul class="collection">`;
-  //   let propositionsArr = qstn.propositions;
-  //   propositionsArr.map((prop) => {
-  //     html += `<li class="collection-item cyan lighten-4 question-proposition">
-  //       <p>
-  //         <label class="qstn-prop">
-  //           <input name="group-${qstn.question_id}" type="radio" class="input-qstn-${qstn.question_id}" id="input-qstn-${qstn.question_id}-prop-${prop.proposition_id}" value="${prop.proposition_id}" />
-  //           <span id="qstn-${qstn.question_id}-prop-${prop.proposition_id}" class="prop" onclick="onClickProp()">${prop.content}</span>
-  //         </label>
-  //       </p>
-  //     </li>`;
-  //   });
-  //   html += `</ul></div></li>`;
-  // });
-  // html += `</ul>
-  // <a id="quiz-done-btn" class="waves-effect waves-light btn disabled"><i class="material-icons right">done</i>Terminer</a>`;
-  // main.innerHTML = html;
 }
 
 // quand on clique sur le bouton de login, il nous dit qui on est
@@ -469,19 +405,64 @@ const renderUserBtn = () => {
 };
 
 function modifyMyQuizModal (quiz_id, action, qstn_id = 0) {
+  console.debug(`@modifyMyQuizModal(${quiz_id}, '${action}', ${qstn_id})`);
+
   // let modal_html = document.getElementById('modal-template');
   let modal_title = document.getElementById('modal-template-title');
   let modal_body = document.getElementById('modal-template-body');
   let modal_footer = document.querySelector('#modal-template .modal-footer');
 
+  state.modalAction = action;
+  state.modal_qstn_id = qstn_id;
+
   switch (action) {
     case 'add-question':
 
       modal_title.innerHTML = 'Add Question';
-      modal_body.innerHTML = `<div class="input-field">
-        <input id="input-add-question" type="text" class="validate">
-        <label for="input-add-question">Question</label>
-      </div>`;
+
+      if (state.qstnContentTemp === undefined) {
+        state.qstnContentTemp = '';
+      }
+      if (state.propObjArr === undefined) {
+        state.propObjArr = [];
+      }
+      if (state.props_ids === undefined) {
+        state.props_ids = [];
+      }
+
+      let html = `<div class="input-field">
+        <input id="input-question" type="text" class="validate" value="${state.qstnContentTemp}">
+        <label ${(state.propObjArr) ? 'class="active"' : ''} for="input-question">Question</label>
+      </div>
+      <ul class="collection">`;
+      state.propObjArr.map((prop, index) => {
+        html += `<li class="collection-item question-proposition row add-qstn-modal-prop-block">
+          <p class="col">${index+1}) ${prop.content}</p>
+          <label class="col">
+            <input id="prop-id-${prop.proposition_id}" name="add-qstn-modal-prop-correct" type="radio" />
+            <span>Correct</span>
+          </label>
+          <a class="myQuiz-remove-prop-btn valign-wrapper col right" onclick="removePropQstnModal(${prop.proposition_id})">
+            <i class="material-icons">delete</i>
+            Remove
+          </a>
+        </li>`;
+      });
+      html += `<li class="collection-item">
+        <div class="row valign-wrapper add-qstn-modal-input-prop-block">
+          <div class="input-field col">
+            <input id="add-qstn-modal-input-prop" type="text" class="validate">
+            <label for="add-qstn-modal-input-prop">Proposition</label>
+          </div>
+          <a class="add-qstn-modal-add-prop-btn valign-wrapper col right" onclick="addPropQstnModal()">
+            <i class="material-icons">add</i>
+            Add
+          </a>
+        </div>
+      </li>`;
+      html += `</ul>`;
+      modal_body.innerHTML = html;
+
       modal_footer.innerHTML = `
       <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
       <a onclick="postQuestion(${quiz_id})" id="modal-template-okBtn" href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>`;
@@ -490,36 +471,103 @@ function modifyMyQuizModal (quiz_id, action, qstn_id = 0) {
 
     case 'edit-quiz':
 
-      modal_title.innerHTML = 'Edit Quiz';
-      modal_body.innerHTML = `<div class="input-field">
-        <input id="input-change-quiz-title" type="text" class="validate">
-        <label for="input-change-quiz-title">Title</label>
-      </div>
-      <div class="input-field">
-        <textarea id="input-change-quiz-description" class="materialize-textarea" data-length="120"></textarea>
-        <label for="input-change-quiz-description">Description</label>
-      </div>
-      <div class="switch">
-        <label>
-          Closed
-          <input id="input-change-quiz-open" type="checkbox" value="open" checked>
-          <span class="lever"></span>
-          Open
-        </label>
-      </div>`;
-      modal_footer.innerHTML = `
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-      <a onclick="updateQuiz(${quiz_id})" id="modal-template-okBtn" href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>`;
+      let quizToEditPromise = getOneQuiz(quiz_id);
+      quizToEditPromise.then((quizToEdit) => {
+
+        console.log(`quizToEdit :`);
+        console.log(quizToEdit);
+
+        modal_title.innerHTML = 'Edit Quiz';
+        modal_body.innerHTML = `<div class="input-field">
+          <input id="input-change-quiz-title" type="text" class="validate" value="${quizToEdit.title}">
+          <label class="active" for="input-change-quiz-title">Title</label>
+        </div>
+        <div class="input-field">
+          <textarea id="input-change-quiz-description" class="materialize-textarea" data-length="120">${quizToEdit.description}</textarea>
+          <label class="active" for="input-change-quiz-description">Description</label>
+        </div>
+        <div class="switch">
+          <label>
+            Closed
+            <input id="input-change-quiz-open" type="checkbox" value="open" ${(quizToEdit.open) ? 'checked' : ''}>
+            <span class="lever"></span>
+            Open
+          </label>
+        </div>`;
+        modal_footer.innerHTML = `
+        <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+        <a onclick="updateQuiz(${quiz_id})" id="modal-template-okBtn" href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>`;
+      });
 
       break;
 
     case 'edit-question':
 
       modal_title.innerHTML = 'Edit Question';
-      modal_body.innerHTML = `<div class="input-field">
-        <textarea id="input-edit-question" class="materialize-textarea" data-length="120"></textarea>
-        <label for="input-edit-question">New Question</label>
-      </div>`;
+
+      console.log(`@modifyMyQuizModal(${quiz_id}, '${action}', ${qstn_id}) => state.propObjArr BEFORE`);
+      console.log(state.propObjArr);
+
+      console.log(`@modifyMyQuizModal(${quiz_id}, '${action}', ${qstn_id}) => state.myQuestions BEFORE`);
+      console.log(state.myQuestions);
+
+      state.myQuestions.map((qstn) => {
+        if(qstn.question_id === qstn_id) {
+          if (state.qstnContentTemp === undefined &&
+              state.propObjArr === undefined &&
+              state.props_ids === undefined) {
+            
+            state.qstnContentTemp = qstn.sentence;
+            state.propObjArr = [];
+            state.props_ids = [];
+            qstn.propositions.map((prop, index) => {
+              state.propObjArr[index] = {
+                content: prop.content,
+                proposition_id: prop.proposition_id,
+                correct: false
+              };
+              state.props_ids.push(prop.proposition_id);
+            });
+          }
+        }
+      });
+
+      console.log(`@modifyMyQuizModal(${quiz_id}, '${action}', ${qstn_id}) => state.propObjArr AFTER`);
+      console.log(state.propObjArr);
+
+      let htmlEditQstn = `<div class="input-field">
+        <input id="input-question" type="text" class="validate" value="${state.qstnContentTemp}">
+        <label ${(state.propObjArr) ? 'class="active"' : ''} for="input-question">Question</label>
+      </div>
+      <ul class="collection">`;
+      state.propObjArr.map((prop, index) => {
+        htmlEditQstn += `<li class="collection-item question-proposition row add-qstn-modal-prop-block">
+          <p class="col">${index+1}) ${prop.content}</p>
+          <label class="col">
+            <input id="prop-id-${prop.proposition_id}" name="add-qstn-modal-prop-correct" type="radio" />
+            <span>Correct</span>
+          </label>
+          <a class="myQuiz-remove-prop-btn valign-wrapper col right" onclick="removePropQstnModal(${prop.proposition_id})">
+            <i class="material-icons">delete</i>
+            Remove
+          </a>
+        </li>`;
+      });
+      htmlEditQstn += `<li class="collection-item">
+        <div class="row valign-wrapper add-qstn-modal-input-prop-block">
+          <div class="input-field col">
+            <input id="add-qstn-modal-input-prop" type="text" class="validate">
+            <label for="add-qstn-modal-input-prop">Proposition</label>
+          </div>
+          <a class="add-qstn-modal-add-prop-btn valign-wrapper col right" onclick="addPropQstnModal()">
+            <i class="material-icons">add</i>
+            Add
+          </a>
+        </div>
+      </li>`;
+      htmlEditQstn += `</ul>`;
+      modal_body.innerHTML = htmlEditQstn;
+
       modal_footer.innerHTML = `
       <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
       <a onclick="updateQuestion(${quiz_id},${qstn_id})" id="modal-template-okBtn" href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>`;
