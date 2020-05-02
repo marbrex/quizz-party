@@ -164,3 +164,13 @@ ul.collection.propositions-block-expanded li {
 .myQuiz-edit-prop-btn {
 	color: #ffa000;
 }
+
+.add-qstn-modal-add-prop-btn {
+	color: #0097a7;
+	cursor: pointer;
+}
+
+.add-qstn-modal-input-prop-block {
+	margin-bottom: 0;
+	justify-content: space-between;
+}

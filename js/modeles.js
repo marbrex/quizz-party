@@ -350,29 +350,53 @@ const postQuestion = (quiz_id) => {
     return qstn_id;
   })
   .then((qstn_id) => {
-    let qstn = document.getElementById('input-add-question').value;
-    let qstn_props = [];
+    let qstn = document.getElementById('input-question').value;
+    let qstn_props = state.propObjArr;
+
+    let bodyObj = {
+      question_id: qstn_id,
+      sentence: qstn,
+      propositions: qstn_props
+    };
 
     console.log(`@postQuestion(${quiz_id}, "${qstn}", ${qstn_props}) => Qstn Id :`);
     console.log(qstn_id);
 
-    console.debug(`@postQuestion(${quiz_id}, "${qstn}", ${qstn_props})`);
+    let checkedProp = document.querySelector('input[name=add-qstn-modal-prop-correct]:checked');
+    if (checkedProp) {
+      let checkedPropId = Number(checkedProp.id.split('-')[2]);
+      bodyObj.propositions.map((prop) => {
+        if (prop.proposition_id === checkedPropId) {
+          prop.correct = true;
+        } else {
+          prop.correct = false;
+        }
+      });
+    } else {
+      M.toast({
+        html: 'Choose right proposition !',
+        displayLength: 4000,
+        classes: 'error'
+      });
+    }
+
+    return bodyObj;
+  })
+  .then((bodyObj) => {
+
+    console.debug(`@postQuestion(${quiz_id}, "${bodyObj.sentence}", ${bodyObj.propositions})`);
     const url = `${state.serverUrl}/quizzes/${quiz_id}/questions`;
 
     let configObj = {
       method: 'POST',
       headers: state.headers,
-      body: JSON.stringify({
-        question_id: qstn_id,
-        sentence: qstn,
-        propositions: qstn_props
-      })
+      body: JSON.stringify(bodyObj)
     };
 
     return fetch(url, configObj)
       .then(filterHttpResponse)
       .then((data) => {
-        console.log(`@postQuestion(${quiz_id}, "${qstn}", ${qstn_props}) => Data :`);
+        console.log(`@postQuestion(${quiz_id}, "${bodyObj.sentence}", ${bodyObj.propositions}) => Data :`);
         console.log(data);
 
         // To update
@@ -384,11 +408,26 @@ const postQuestion = (quiz_id) => {
 };
 
 const updateQuestion = (quiz_id, qstn_id) => {
-  let qstn = document.getElementById('input-edit-question').value;
-  let qstn_props = [];
+  let qstn = document.getElementById('input-question').value;
+  console.log(`@updateQuestion(${quiz_id}, ${qstn_id}) => qstn :`);
+  console.log(qstn);
+
+  console.log(`@updateQuestion(${quiz_id}, ${qstn_id}) => state.propObjArr :`);
+  console.log(state.propObjArr);
+  let qstn_props = state.propObjArr;
 
   console.debug(`@updateQuestion(${quiz_id}, ${qstn_id})`);
   const url = `${state.serverUrl}/quizzes/${quiz_id}/questions/${qstn_id}`;
+
+  let checkedProp = document.querySelector('input[name=add-qstn-modal-prop-correct]:checked');
+  if (checkedProp) {
+    let checkedPropId = Number(checkedProp.id.split('-')[2]);
+    qstn_props.map((prop) => {
+      if (prop.proposition_id === checkedPropId) {
+        prop.correct = true;
+      }
+    });
+  }
 
   let configObj = {
     method: 'PUT',
@@ -533,6 +572,72 @@ function onClickTerminer() {
 function onClickMyQuizBtn(quiz_id, action, qstn_id = 0) {
   modifyMyQuizModal(quiz_id, action, qstn_id);
   let modal = document.querySelector(`#modal-template`);
-  let instance = M.Modal.getInstance(modal);
+  let instance = M.Modal.init(modal, {
+    onCloseEnd: function() {
+      setTimeout(() => {
+        console.log(`@modal.onCloseEnd()`);
+        state.qstnContentTemp = undefined;
+        state.propObjArr = undefined;
+        state.props_ids = undefined;
+      }, 1000);
+    }
+  });
   instance.open();
+}
+
+function addPropQstnModal() {
+  console.debug(`@addPropQstnModal()`);
+
+  console.log('@addPropQstnModal() => state.propObjArr BEFORE :');
+  console.log(state.propObjArr);
+
+  console.log('@addPropQstnModal() => state.props_ids BEFORE :');
+  console.log(state.props_ids);
+
+  let prop = document.getElementById('add-qstn-modal-input-prop').value;
+  let prop_id = state.propObjArr.length;
+
+  while (state.props_ids.includes(prop_id)) {
+    prop_id++;
+  }
+
+  let obj = {
+    content: prop,
+    proposition_id: prop_id,
+    correct: false
+  };
+
+  state.propObjArr.push(obj);
+  state.props_ids.push(prop_id);
+
+  console.log('@addPropQstnModal() => state.propObjArr AFTER :');
+  console.log(state.propObjArr);
+
+  console.log('@addPropQstnModal() => state.props_ids AFTER :');
+  console.log(state.props_ids);
+
+  state.qstnContentTemp = document.getElementById('input-question').value;
+  modifyMyQuizModal(state.myCurrentQuiz, state.modalAction, state.modal_qstn_id);
+}
+
+function removePropQstnModal(prop_id) {
+  console.debug(`@removePropQstnModal(${prop_id})`);
+
+  state.propObjArr.map((prop, index) => {
+    if (prop.proposition_id === prop_id) {
+      state.propObjArr.splice(index, 1);
+    }
+  });
+  console.debug(`@removePropQstnModal(${prop_id}) => state.propObjArr :`);
+  console.debug(state.propObjArr);
+
+  state.props_ids.map((id, index) => {
+    if (id === prop_id) {
+      state.props_ids.splice(index, 1);
+    }
+  });
+  console.debug(`@removePropQstnModal(${prop_id}) => state.props_ids :`);
+  console.debug(state.props_ids);
+
+  modifyMyQuizModal(state.myCurrentQuiz, state.modalAction, state.modal_qstn_id);
 }
