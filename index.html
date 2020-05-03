@@ -28,7 +28,7 @@
       <div class="container">
         <div class="input-field">
           <input id="login-key-input" type="text" class="validate">
-          <label for="login-key-input">X Api Key</label>
+          <label for="login-key-input">X Api Key *</label>
         </div>
       </div>
     </div>
@@ -67,17 +67,17 @@
       <div class="container">
         <div class="input-field">
           <input id="quiz-title" type="text" class="validate">
-          <label for="quiz-title">Title</label>
+          <label for="quiz-title">Title *</label>
         </div>
         <div class="input-field">
           <textarea id="quiz-descr" class="materialize-textarea" data-length="120"></textarea>
-          <label for="quiz-descr">Description</label>
+          <label for="quiz-descr">Description *</label>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text" onclick="createNewQuiz()">Create</a>
+      <a href="#!" class="waves-effect waves-green btn-flat cyan-text" onclick="createNewQuiz()">Create</a>
     </div>
   </div>
 
@@ -182,6 +182,10 @@
             <div class="col l4">
               <div id="id-my-answers-list">
                 <h4>Login to see your answers</h4>
+              </div>
+            </div>
+            <div class="col l8">
+              <div id="id-my-answers-main">
               </div>
             </div>
           </div>

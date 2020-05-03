@@ -191,25 +191,63 @@ const postQuiz = (quiz_title, quiz_descr) => {
   console.debug(`@postQuiz(${quiz_title}, ${quiz_descr})`);
   const url = `${state.serverUrl}/quizzes/`;
 
-  let configObj = {
-    method: 'POST',
-    headers: state.headers,
-    body: JSON.stringify({
-      title: quiz_title,
-      description: quiz_descr
-    })
-  };
+  let p = new Promise((resolve, reject) => {
+    if (quiz_title === '' || !quiz_title || !quiz_title.replace(/\s/g, '').length) {
+      M.toast({
+        html: 'Title is empty !',
+        displayLength: 4000,
+        classes: 'error'
+      });
+      throw new Error(`Title is empty !`);
+      reject(`Title is empty !`);
+    }
+    if (quiz_descr === '' || !quiz_descr || !quiz_descr.replace(/\s/g, '').length) {
+      M.toast({
+        html: 'Description is empty !',
+        displayLength: 4000,
+        classes: 'error'
+      });
+      throw new Error(`Description is empty !`);
+      reject(`Description is empty !`);
+    }
+    resolve();
+  })
+  .then(() => {
+    let configObj = {
+      method: 'POST',
+      headers: state.headers,
+      body: JSON.stringify({
+        title: quiz_title,
+        description: quiz_descr
+      })
+    };
 
-  return fetch(url, configObj)
-  .then(filterHttpResponse)
-  .then((data) => {
-    console.log(`@postQuiz(${quiz_title}, ${quiz_descr}) => Data :`);
-    console.log(data);
+    return fetch(url, configObj)
+    .then(filterHttpResponse)
+    .then((data) => {
+      console.log(`@postQuiz(${quiz_title}, ${quiz_descr}) => Data :`);
+      console.log(data);
 
-    // To update list of user's quizzes
-    getMyQuizzes();
-    return data;
-  });
+      // To update list of user's quizzes
+      getMyQuizzes();
+
+      M.toast({
+        html: 'Quiz created !',
+        displayLength: 4000,
+        classes: 'success'
+      });
+
+      let elem = document.getElementById('modal-create-quiz');
+      let inst = M.Modal.getInstance(elem);
+      inst.close();
+
+      document.querySelector('#modal-create-quiz #quiz-title').value = '';
+      document.querySelector('#modal-create-quiz #quiz-descr').value = '';
+
+      return data;
+    });
+  })
+  .catch(err => console.error(`Error on creating quiz: ${err}`));
 };
 
 const createNewQuiz = (quiz_title, quiz_descr) => {
@@ -217,9 +255,6 @@ const createNewQuiz = (quiz_title, quiz_descr) => {
     quiz_title = document.querySelector('#modal-create-quiz #quiz-title').value;
   if (quiz_descr === undefined)
     quiz_descr = document.querySelector('#modal-create-quiz #quiz-descr').value;
-
-  document.querySelector('#modal-create-quiz #quiz-title').value = '';
-  document.querySelector('#modal-create-quiz #quiz-descr').value = '';
 
   postQuiz(quiz_title, quiz_descr);
 };
@@ -262,28 +297,64 @@ const updateQuiz = (quiz_id) => {
   console.debug(`@updateQuiz(${quiz_id})`);
   const url = `${state.serverUrl}/quizzes/${quiz_id}`;
 
-  let configObj = {
-    method: 'PUT',
-    headers: state.headers,
-    body: JSON.stringify({
-      title: quiz_title,
-      description: quiz_descr,
-      open: quiz_open
-    })
+  let bodyObj = {
+    title: quiz_title,
+    description: quiz_descr,
+    open: quiz_open
   };
 
-  return fetch(url, configObj)
-    .then(filterHttpResponse)
-    .then((data) => {
-      console.log(`@updateQuiz(${quiz_id}) => Data :`);
-      console.log(data);
+  let p = new Promise((resolve, reject) => {
+    if (bodyObj.title === '' || !bodyObj.title || !bodyObj.title.replace(/\s/g, '').length) {
+      M.toast({
+        html: 'Title is empty !',
+        displayLength: 4000,
+        classes: 'error'
+      });
+      throw new Error(`Title is empty !`);
+      reject(`Title is empty !`);
+    }
+    if (bodyObj.description === '' || !bodyObj.description || !bodyObj.description.replace(/\s/g, '').length) {
+      M.toast({
+        html: 'Description is empty !',
+        displayLength: 4000,
+        classes: 'error'
+      });
+      throw new Error(`Description is empty !`);
+      reject(`Description is empty !`);
+    }
+    resolve();
+  })
+  .then(() => {
+    let configObj = {
+      method: 'PUT',
+      headers: state.headers,
+      body: JSON.stringify(bodyObj)
+    };
 
-      // To update
-      getMyQuizzes();
-      getMyQuestions(quiz_id);
+    return fetch(url, configObj)
+      .then(filterHttpResponse)
+      .then((data) => {
+        console.log(`@updateQuiz(${quiz_id}) => Data :`);
+        console.log(data);
 
-      return data;
-    });
+        // To update
+        getMyQuizzes();
+        getMyQuestions(quiz_id);
+
+        M.toast({
+          html: 'Quiz updated !',
+          displayLength: 4000,
+          classes: 'success'
+        });
+
+        let elem = document.getElementById('modal-template');
+        let inst = M.Modal.getInstance(elem);
+        inst.close();
+
+        return data;
+      });
+  })
+  .catch((err) => console.error(`Error on quiz updating: ${err}`));
 };
 
 // //////////////////////////////////////////////////////////////////////////////
@@ -362,8 +433,26 @@ const postQuestion = (quiz_id) => {
     console.log(`@postQuestion(${quiz_id}, "${qstn}", ${qstn_props}) => Qstn Id :`);
     console.log(qstn_id);
 
+    if (bodyObj.sentence === '' || !bodyObj.sentence || !bodyObj.sentence.replace(/\s/g, '').length) {
+      M.toast({
+        html: 'Question is empty !',
+        displayLength: 4000,
+        classes: 'error'
+      });
+      throw new Error(`Question is empty !`);
+    }
+
+    if (!bodyObj.propositions || bodyObj.propositions.length < 2) {
+      M.toast({
+        html: 'Give at least 2 propositions !',
+        displayLength: 4000,
+        classes: 'error'
+      });
+      throw new Error(`Give at least 2 propositions !`);
+    }
+
     let checkedProp = document.querySelector('input[name=add-qstn-modal-prop-correct]:checked');
-    if (checkedProp) {
+    if (checkedProp && checkedProp !== null) {
       let checkedPropId = Number(checkedProp.id.split('-')[2]);
       bodyObj.propositions.map((prop) => {
         if (prop.proposition_id === checkedPropId) {
@@ -374,10 +463,11 @@ const postQuestion = (quiz_id) => {
       });
     } else {
       M.toast({
-        html: 'Choose right proposition !',
+        html: 'Give correct proposition !',
         displayLength: 4000,
         classes: 'error'
       });
+      throw new Error(`Give correct proposition !`);
     }
 
     return bodyObj;
@@ -402,9 +492,20 @@ const postQuestion = (quiz_id) => {
         // To update
         getMyQuestions(quiz_id);
 
+        M.toast({
+          html: 'Question created !',
+          displayLength: 4000,
+          classes: 'success'
+        });
+
+        let elem = document.getElementById('modal-template');
+        let inst = M.Modal.getInstance(elem);
+        inst.close();
+
         return data;
       });
-  });
+  })
+  .catch((err) => console.error(`Error on question posting: ${err}`));
 };
 
 const updateQuestion = (quiz_id, qstn_id) => {
@@ -569,8 +670,8 @@ function onClickTerminer() {
   }
 }
 
-function onClickMyQuizBtn(quiz_id, action, qstn_id = 0) {
-  modifyMyQuizModal(quiz_id, action, qstn_id);
+function onClickMyQuizBtn(action, quiz_id = 0, qstn_id = 0) {
+  modifyMyQuizModal(action, quiz_id, qstn_id);
   let modal = document.querySelector(`#modal-template`);
   let instance = M.Modal.init(modal, {
     onCloseEnd: function() {
@@ -595,29 +696,37 @@ function addPropQstnModal() {
   console.log(state.props_ids);
 
   let prop = document.getElementById('add-qstn-modal-input-prop').value;
-  let prop_id = state.propObjArr.length;
+  if (prop === '' || !prop || !prop.replace(/\s/g, '').length) {
+    M.toast({
+      html: 'Proposition is empty !',
+      displayLength: 4000,
+      classes: 'error'
+    });
+  } else {
+    let prop_id = state.propObjArr.length;
 
-  while (state.props_ids.includes(prop_id)) {
-    prop_id++;
+    while (state.props_ids.includes(prop_id)) {
+      prop_id++;
+    }
+
+    let obj = {
+      content: prop,
+      proposition_id: prop_id,
+      correct: false
+    };
+
+    state.propObjArr.push(obj);
+    state.props_ids.push(prop_id);
+
+    console.log('@addPropQstnModal() => state.propObjArr AFTER :');
+    console.log(state.propObjArr);
+
+    console.log('@addPropQstnModal() => state.props_ids AFTER :');
+    console.log(state.props_ids);
+
+    state.qstnContentTemp = document.getElementById('input-question').value;
+    modifyMyQuizModal(state.modalAction, state.myCurrentQuiz, state.modal_qstn_id);
   }
-
-  let obj = {
-    content: prop,
-    proposition_id: prop_id,
-    correct: false
-  };
-
-  state.propObjArr.push(obj);
-  state.props_ids.push(prop_id);
-
-  console.log('@addPropQstnModal() => state.propObjArr AFTER :');
-  console.log(state.propObjArr);
-
-  console.log('@addPropQstnModal() => state.props_ids AFTER :');
-  console.log(state.props_ids);
-
-  state.qstnContentTemp = document.getElementById('input-question').value;
-  modifyMyQuizModal(state.myCurrentQuiz, state.modalAction, state.modal_qstn_id);
 }
 
 function removePropQstnModal(prop_id) {
@@ -639,5 +748,5 @@ function removePropQstnModal(prop_id) {
   console.debug(`@removePropQstnModal(${prop_id}) => state.props_ids :`);
   console.debug(state.props_ids);
 
-  modifyMyQuizModal(state.myCurrentQuiz, state.modalAction, state.modal_qstn_id);
+  modifyMyQuizModal(state.modalAction, state.myCurrentQuiz, state.modal_qstn_id);
 }
