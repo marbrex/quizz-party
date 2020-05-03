@@ -34,6 +34,7 @@ const logedOut = () => {
   document.getElementById('id-my-quizzes-list').innerHTML = `<h4>Login to see your quizzes</h4>`;
   document.getElementById('id-my-answers-list').innerHTML = `<h4>Login to see your answers</h4>`;
   document.getElementById('id-my-current-quiz').innerHTML = '';
+  document.getElementById('id-my-answers-main').innerHTML = '';
 };
 
 // génération d'une liste de quizzes avec deux boutons en bas
@@ -58,14 +59,14 @@ const htmlQuizzesList = (quizzes, curr, total) => {
   const prevBtn =
     curr !== 1
       ? `<button id="id-prev-quizzes" data-page="${curr -
-          1}" class="btn"><i class="material-icons">navigate_before</i></button>`
+          1}" class="btn cyan"><i class="material-icons">navigate_before</i></button>`
       : '';
 
   // le bouton ">" pour aller à la page suivante, ou rien si c'est la première page
   const nextBtn =
     curr !== total
       ? `<button id="id-next-quizzes" data-page="${curr +
-          1}" class="btn"><i class="material-icons">navigate_next</i></button>`
+          1}" class="btn cyan"><i class="material-icons">navigate_next</i></button>`
       : '';
 
   // La liste complète et les deux boutons en bas
@@ -225,8 +226,8 @@ function renderMyCurrentQuiz() {
             <i class="material-icons">sentiment_dissatisfied</i>
             <span>This quizz doesn't have any questions !</span>
           </li>
-          <li><a onclick="onClickMyQuizBtn(${myQuiz_id},'add-question')"><i class="material-icons left">add</i>Add Question</a></li>
-          <li><a onclick="onClickMyQuizBtn(${myQuiz_id},'edit-quiz')"><i class="material-icons left">create</i>Edit Quiz</a></li>
+          <li><a onclick="onClickMyQuizBtn('add-question', ${myQuiz_id})"><i class="material-icons left">add</i>Add Question</a></li>
+          <li><a onclick="onClickMyQuizBtn('edit-quiz', ${myQuiz_id})"><i class="material-icons left">create</i>Edit Quiz</a></li>
         </ul>
       </div>
     </nav>`;
@@ -236,8 +237,8 @@ function renderMyCurrentQuiz() {
       <div class="nav-wrapper">
         <ul class="left hide-on-med-and-down">
           <li class="status-message"><span>${myQuestionsArr.length} ${(myQuestionsArr.length === 1) ? "question" : "questions"}</span></li>
-          <li><a onclick="onClickMyQuizBtn(${myQuiz_id},'add-question')"><i class="material-icons left">add</i>Add Question</a></li>
-          <li><a onclick="onClickMyQuizBtn(${myQuiz_id},'edit-quiz')"><i class="material-icons left">create</i>Edit Quiz</a></li>
+          <li><a onclick="onClickMyQuizBtn('add-question', ${myQuiz_id})"><i class="material-icons left">add</i>Add Question</a></li>
+          <li><a onclick="onClickMyQuizBtn('edit-quiz', ${myQuiz_id})"><i class="material-icons left">create</i>Edit Quiz</a></li>
         </ul>
       </div>
     </nav>
@@ -246,7 +247,7 @@ function renderMyCurrentQuiz() {
       html += `<li class="collection-item cyan lighten-4 quiz-question">
         <div class="row valign-wrapper">
           <span class="col quiz-qstn-nb">Question ${index+1} :</span>
-          <a class="col myQuiz-edit-prop-btn valign-wrapper" onclick="onClickMyQuizBtn(${myQuiz_id}, 'edit-question', ${qstn.question_id})">
+          <a class="col myQuiz-edit-prop-btn valign-wrapper" onclick="onClickMyQuizBtn('edit-question', ${myQuiz_id}, ${qstn.question_id})">
             <i class="material-icons">create</i>
             Edit Question
           </a>
@@ -312,7 +313,7 @@ function renderMyAnswers() {
     </nav>
     <ul class="collection">`;
     state.myAnswers.map((answ) => {
-      html += `<li class="collection-item cyan lighten-5 quizz-element">
+      html += `<li class="collection-item cyan lighten-5 quizz-element" onclick="renderMyCurrentAnswers(${answ.quiz_id})">
         <h5>${answ.title}</h5>
         <p>${answ.description}</p><a class="chip">Author : ${answ.owner_id}</a>
         <a class="chip">Quizz ID : ${answ.quiz_id}</a>
@@ -322,6 +323,33 @@ function renderMyAnswers() {
   }
 
   listHtml.innerHTML = html;
+}
+
+function renderMyCurrentAnswers(quiz_id) {
+  const myAnswers = document.getElementById('id-my-answers-main');
+
+  // let quizPromise = getOneQuiz(quiz_id);
+  // quizPromise.then((quiz) => {
+
+  //   console.log(`@renderMyCurrentAnswers(${quiz_id}) => Quiz :`);
+  //   console.log(quiz);
+
+    let html = `<ul class="collection">`;
+    state.myAnswers.map((answ) => {
+      if (answ.quiz_id === quiz_id) {
+        answ.answers.map((a) => {
+          html += `<li class="collection-item cyan lighten-4 quiz-question">
+            <p>Question ID : ${a.question_id}</p>
+            <p>Proposition ID : ${a.proposition_id}</p>
+          </li>`;
+        });
+      }
+    });
+    html += `</ul>`;
+
+    myAnswers.innerHTML = html;
+
+  // });
 }
 
 function renderCurrentQuizz() {
@@ -404,8 +432,8 @@ const renderUserBtn = () => {
   };
 };
 
-function modifyMyQuizModal (quiz_id, action, qstn_id = 0) {
-  console.debug(`@modifyMyQuizModal(${quiz_id}, '${action}', ${qstn_id})`);
+function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
+  console.debug(`@modifyMyQuizModal('${action}', ${quiz_id}, ${qstn_id})`);
 
   // let modal_html = document.getElementById('modal-template');
   let modal_title = document.getElementById('modal-template-title');
@@ -432,7 +460,7 @@ function modifyMyQuizModal (quiz_id, action, qstn_id = 0) {
 
       let html = `<div class="input-field">
         <input id="input-question" type="text" class="validate" value="${state.qstnContentTemp}">
-        <label ${(state.propObjArr) ? 'class="active"' : ''} for="input-question">Question</label>
+        <label ${(state.propObjArr) ? 'class="active"' : ''} for="input-question">Question *</label>
       </div>
       <ul class="collection">`;
       state.propObjArr.map((prop, index) => {
@@ -465,7 +493,7 @@ function modifyMyQuizModal (quiz_id, action, qstn_id = 0) {
 
       modal_footer.innerHTML = `
       <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-      <a onclick="postQuestion(${quiz_id})" id="modal-template-okBtn" href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>`;
+      <a onclick="postQuestion(${quiz_id})" id="modal-template-okBtn" href="#!" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
 
       break;
 
@@ -480,11 +508,11 @@ function modifyMyQuizModal (quiz_id, action, qstn_id = 0) {
         modal_title.innerHTML = 'Edit Quiz';
         modal_body.innerHTML = `<div class="input-field">
           <input id="input-change-quiz-title" type="text" class="validate" value="${quizToEdit.title}">
-          <label class="active" for="input-change-quiz-title">Title</label>
+          <label class="active" for="input-change-quiz-title">Title *</label>
         </div>
         <div class="input-field">
           <textarea id="input-change-quiz-description" class="materialize-textarea" data-length="120">${quizToEdit.description}</textarea>
-          <label class="active" for="input-change-quiz-description">Description</label>
+          <label class="active" for="input-change-quiz-description">Description *</label>
         </div>
         <div class="switch">
           <label>
@@ -496,7 +524,7 @@ function modifyMyQuizModal (quiz_id, action, qstn_id = 0) {
         </div>`;
         modal_footer.innerHTML = `
         <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-        <a onclick="updateQuiz(${quiz_id})" id="modal-template-okBtn" href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>`;
+        <a onclick="updateQuiz(${quiz_id})" id="modal-template-okBtn" href="#!" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
       });
 
       break;
@@ -505,10 +533,10 @@ function modifyMyQuizModal (quiz_id, action, qstn_id = 0) {
 
       modal_title.innerHTML = 'Edit Question';
 
-      console.log(`@modifyMyQuizModal(${quiz_id}, '${action}', ${qstn_id}) => state.propObjArr BEFORE`);
+      console.log(`@modifyMyQuizModal('${action}', ${quiz_id}, ${qstn_id}) => state.propObjArr BEFORE`);
       console.log(state.propObjArr);
 
-      console.log(`@modifyMyQuizModal(${quiz_id}, '${action}', ${qstn_id}) => state.myQuestions BEFORE`);
+      console.log(`@modifyMyQuizModal('${action}', ${quiz_id}, ${qstn_id}) => state.myQuestions BEFORE`);
       console.log(state.myQuestions);
 
       state.myQuestions.map((qstn) => {
@@ -532,12 +560,12 @@ function modifyMyQuizModal (quiz_id, action, qstn_id = 0) {
         }
       });
 
-      console.log(`@modifyMyQuizModal(${quiz_id}, '${action}', ${qstn_id}) => state.propObjArr AFTER`);
+      console.log(`@modifyMyQuizModal('${action}', ${quiz_id}, ${qstn_id}) => state.propObjArr AFTER`);
       console.log(state.propObjArr);
 
       let htmlEditQstn = `<div class="input-field">
         <input id="input-question" type="text" class="validate" value="${state.qstnContentTemp}">
-        <label ${(state.propObjArr) ? 'class="active"' : ''} for="input-question">Question</label>
+        <label ${(state.propObjArr) ? 'class="active"' : ''} for="input-question">Question *</label>
       </div>
       <ul class="collection">`;
       state.propObjArr.map((prop, index) => {
