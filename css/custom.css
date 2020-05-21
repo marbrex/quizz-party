@@ -174,3 +174,26 @@ ul.collection.propositions-block-expanded li {
 	margin-bottom: 0;
 	justify-content: space-between;
 }
+
+#all-quizzes-list {
+	overflow-y: scroll;
+}
+
+#quizes-per-page {
+	width: 40px;
+	background-color: #4dd0e1;
+	color: white;
+	font-weight: bold;
+	border: 1px solid #4dd0e1;
+	border-radius: 3px;
+	padding: 0px 5px;
+}
+
+.pagination {
+	user-select: none;
+}
+
+.pagination li.active {
+	background-color: #00bcd4;
+	font-weight: bold;
+}

@@ -46,7 +46,7 @@ const htmlQuizzesList = (quizzes, curr, total) => {
   // On définit aussi .modal-trigger et data-target="id-modal-quizz-menu"
   // pour qu'une fenêtre modale soit affichée quand on clique dessus
   // VOIR https://materializecss.com/modals.html
-  const quizzesLIst = quizzes.map(
+  const quizzesLIst = quizzes.results.map(
     (q) =>
       `<li class="collection-item cyan lighten-5 quizz-element" data-quizzid="${q.quiz_id}">
         <h5>${q.title}</h5>
@@ -56,27 +56,41 @@ const htmlQuizzesList = (quizzes, curr, total) => {
 
   // le bouton "<" pour revenir à la page précédente, ou rien si c'est la première page
   // on fixe une donnée data-page pour savoir où aller via JS via element.dataset.page
-  const prevBtn =
-    curr !== 1
-      ? `<button id="id-prev-quizzes" data-page="${curr -
-          1}" class="btn cyan"><i class="material-icons">navigate_before</i></button>`
-      : '';
+  const prevBtn = `<li id="id-prev-quizzes" data-page="${curr-1}" class="${(curr !== 1) ? "waves-effect" : "disabled"}"><a><i class="material-icons">chevron_left</i></a></li>`;
 
   // le bouton ">" pour aller à la page suivante, ou rien si c'est la première page
-  const nextBtn =
-    curr !== total
-      ? `<button id="id-next-quizzes" data-page="${curr +
-          1}" class="btn cyan"><i class="material-icons">navigate_next</i></button>`
-      : '';
+  const nextBtn = `<li id="id-next-quizzes" data-page="${curr+1}" class="${(curr !== total) ? "waves-effect" : "disabled"}"><a><i class="material-icons">chevron_right</i></a></li>`;
+
+  const toolBar = `<nav class="myQuizzes-tool-bar">
+    <div class="nav-wrapper">
+      <ul class="hide-on-med-and-down">
+        <li class="status-message"><span>${quizzes.nbResults} ${(quizzes.nbResults == 1) ? "quiz" : "quizes"}</span></li>
+        <li class="status-message"><span><input type="text" min="1" max="${quizzes.nbResults}" maxlength="${String(quizzes.nbResults).length}" id="quizes-per-page" class="browser-default" value="${quizzes.pageSize}" /> per page</span></li>
+        <li class="right"><a class="modal-trigger" href="#modal-sort-quizes"><i class="material-icons">sort</i></a></li>
+      </ul>
+    </div>
+  </nav>`;
+
+  let pageSelector = `<ul class="pagination">
+    ${prevBtn}`;
+
+  for (let i=1; i <= total; i++) {
+    pageSelector += `<li class="${i===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${i})"><a>${i}</a></li>`;
+  }
+
+  pageSelector += `${nextBtn}
+  </ul>`;
 
   // La liste complète et les deux boutons en bas
   const html = `
-  <ul class="collection">
-    ${quizzesLIst.join('')}
-  </ul>
-  <div class="row">      
-    <div class="col s6 left-align">${prevBtn}</div>
-    <div class="col s6 right-align">${nextBtn}</div>
+  ${toolBar}
+  <div id="all-quizzes-list-block">
+    <ul id="all-quizzes-list" class="collection">
+      ${quizzesLIst.join('')}
+    </ul>
+    <div class="row center">      
+      ${pageSelector}
+    </div>
   </div>
   `;
   return html;
@@ -92,13 +106,13 @@ function renderQuizzes() {
   console.debug(`@renderQuizzes()`);
 
   // les éléments à mettre à jour : le conteneur pour la liste des quizz
-  const usersElt = document.getElementById('id-all-quizzes-list');
+  const usersElt = document.getElementById('all-quizzes-side-panel');
   // une fenêtre modale définie dans le HTML
   const modal = document.getElementById('id-modal-quizz-menu');
 
   // on appelle la fonction de généraion et on met le HTML produit dans le DOM
   usersElt.innerHTML = htmlQuizzesList(
-    state.quizzes.results,
+    state.quizzes,
     state.quizzes.currentPage,
     state.quizzes.nbPages
   );
@@ -109,7 +123,7 @@ function renderQuizzes() {
   const prevBtn = document.getElementById('id-prev-quizzes');
   const nextBtn = document.getElementById('id-next-quizzes');
   // la liste de tous les quizzes individuels
-  const quizzes = document.querySelectorAll('#id-all-quizzes-list li');
+  const quizzes = document.querySelectorAll('#all-quizzes-side-panel #all-quizzes-list li');
 
   // les handlers quand on clique sur "<" ou ">"
   function clickBtnPager() {
@@ -119,8 +133,8 @@ function renderQuizzes() {
     // A L'ELEMENT AUQUEL ON ATTACHE CE HANDLER
     getQuizzes(this.dataset.page);
   }
-  if (prevBtn) prevBtn.onclick = clickBtnPager;
-  if (nextBtn) nextBtn.onclick = clickBtnPager;
+  if (!prevBtn.classList.contains('disabled')) prevBtn.onclick = clickBtnPager;
+  if (!nextBtn.classList.contains('disabled')) nextBtn.onclick = clickBtnPager;
 
   // qd on clique sur un quizz, on change sont contenu avant affichage
   // l'affichage sera automatiquement déclenché par materializecss car on
@@ -147,6 +161,10 @@ function renderQuizzes() {
   quizzes.forEach((q) => {
     q.onclick = clickQuiz;
   });
+
+  // on met la hauteur de la liste des quizzes
+  let block = document.getElementById("all-quizzes-list");
+  block.style.height = `${window.innerHeight - block.offsetTop - 100}px`;
 }
 
 function renderMyQuizzes() {
@@ -154,7 +172,14 @@ function renderMyQuizzes() {
 
   let html = '';
   if (state.myQuizzes.length === 0) {
-    html = `<h4>You don't have any quizzes</h4>`;
+    html = `<nav class="myQuizzes-tool-bar">
+      <div class="nav-wrapper">
+        <ul class="left hide-on-med-and-down">
+          <li><a class="modal-trigger" href="#modal-create-quiz"><i class="material-icons left">add</i>Create</a></li>
+        </ul>
+      </div>
+    </nav>
+    <h4>You don't have any quizzes</h4>`;
   }
   else {
     html = `<nav class="myQuizzes-tool-bar">
@@ -492,8 +517,8 @@ function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
       modal_body.innerHTML = html;
 
       modal_footer.innerHTML = `
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-      <a onclick="postQuestion(${quiz_id})" id="modal-template-okBtn" href="#!" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
+      <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+      <a onclick="postQuestion(${quiz_id})" id="modal-template-okBtn" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
 
       break;
 
@@ -523,8 +548,8 @@ function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
           </label>
         </div>`;
         modal_footer.innerHTML = `
-        <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-        <a onclick="updateQuiz(${quiz_id})" id="modal-template-okBtn" href="#!" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
+        <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+        <a onclick="updateQuiz(${quiz_id})" id="modal-template-okBtn" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
       });
 
       break;
@@ -606,8 +631,8 @@ function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
       modal_body.innerHTML = htmlEditQstn;
 
       modal_footer.innerHTML = `
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-      <a onclick="updateQuestion(${quiz_id},${qstn_id})" id="modal-template-okBtn" href="#!" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
+      <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+      <a onclick="updateQuestion(${quiz_id},${qstn_id})" id="modal-template-okBtn" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
 
       break;
   }

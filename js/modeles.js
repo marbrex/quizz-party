@@ -856,3 +856,8 @@ function removePropQstnModal(prop_id) {
   state.qstnContentTemp = document.getElementById('input-question').value;
   modifyMyQuizModal(state.modalAction, state.myCurrentQuiz, state.modal_qstn_id);
 }
+
+document.getElementById("search-form").onsubmit = () => {
+  console.debug(`@search()`);
+  alert(document.querySelector('input#search').value);
+};
