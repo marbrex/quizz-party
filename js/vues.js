@@ -64,7 +64,7 @@ const htmlQuizzesList = (quizzes, curr, total) => {
   const toolBar = `<nav class="myQuizzes-tool-bar">
     <div class="nav-wrapper">
       <ul class="hide-on-med-and-down">
-        <li class="status-message"><span>${quizzes.nbResults} ${(quizzes.nbResults == 1) ? "quiz" : "quizes"}</span></li>
+        <li class="status-message"><span>${quizzes.results.length} / ${quizzes.nbResults} ${(quizzes.nbResults == 1) ? "quiz" : "quizes"}</span></li>
         <li class="status-message"><span><input type="text" min="1" max="${quizzes.nbResults}" maxlength="${String(quizzes.nbResults).length}" id="quizes-per-page" class="browser-default" value="${quizzes.pageSize}" /> per page</span></li>
         <li class="right"><a class="modal-trigger" href="#modal-sort-quizes"><i class="material-icons">sort</i></a></li>
       </ul>
@@ -74,8 +74,20 @@ const htmlQuizzesList = (quizzes, curr, total) => {
   let pageSelector = `<ul class="pagination">
     ${prevBtn}`;
 
-  for (let i=1; i <= total; i++) {
-    pageSelector += `<li class="${i===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${i})"><a>${i}</a></li>`;
+  if (total < 8) {
+    for (let i=1; i <= total; i++) {
+      pageSelector += `<li class="${i===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${i},${quizzes.pageSize})"><a>${i}</a></li>`;
+    }
+  }
+  else {
+    pageSelector += `<li class="${1===curr ? "active" : "waves-effect"}" onclick="getQuizzes(1,${quizzes.pageSize})"><a>1</a></li>
+    <li class="${2===curr ? "active" : "waves-effect"}" onclick="getQuizzes(2,${quizzes.pageSize})"><a>2</a></li>
+    <li class="${3===curr ? "active" : "waves-effect"}" onclick="getQuizzes(3,${quizzes.pageSize})"><a>3</a></li>
+    <li><a>...</a></li>
+    <li class="${total-2===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total-2},${quizzes.pageSize})"><a>${total-2}</a></li>
+    <li class="${total-1===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total-1},${quizzes.pageSize})"><a>${total-1}</a></li>
+    <li class="${total===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total},${quizzes.pageSize})"><a>${total}</a></li>
+    `;
   }
 
   pageSelector += `${nextBtn}
@@ -110,6 +122,8 @@ function renderQuizzes() {
   // une fenêtre modale définie dans le HTML
   const modal = document.getElementById('id-modal-quizz-menu');
 
+  console.log(`Before getting html : ${state.quizzes.pageSize}`);
+
   // on appelle la fonction de généraion et on met le HTML produit dans le DOM
   usersElt.innerHTML = htmlQuizzesList(
     state.quizzes,
@@ -125,13 +139,47 @@ function renderQuizzes() {
   // la liste de tous les quizzes individuels
   const quizzes = document.querySelectorAll('#all-quizzes-side-panel #all-quizzes-list li');
 
+  // on recupere l'element input
+  const quizzesPerPage = document.getElementById("quizes-per-page");
+  // on conserve le nombre des quizzes par page juste avant la modification
+  let prevPerPage = state.quizzes.pageSize;
+
+  // on ajoute un evenement, quand l'utilisateur saisie le nombre
+  // des quizzes par page, on met a jour la valeur dans state
+  quizzesPerPage.addEventListener("input", (e) => {
+    let nb = e.target.value;
+    if (!isNaN(nb)) {
+      // entre 1 et 200 car c'est impose par le serveur
+      if (nb >= 1 && nb < 200)
+        state.quizzes.pageSize = nb;
+      else
+        state.quizzes.pageSize = prevPerPage;
+      console.log(`On Input : ${state.quizzes.pageSize}`);
+    }
+  });
+
+  // on ajoute un evenement, quand l'utilisateur a fini d'entrer
+  // le nombre et 'focusout' du champs de saisi, on update
+  // la page actuelle
+  quizzesPerPage.addEventListener("focusout", () => {
+    if (prevPerPage < 1 || prevPerPage >= 200) {
+      M.toast({
+        html: "Number must be between 1 and 199 !",
+        displayLength: 3000,
+        classes: 'error'
+      });
+    }
+    else getQuizzes(state.quizzes.currentPage, state.quizzes.pageSize);
+    console.log(`On Focus Out : ${state.quizzes.pageSize}`);
+  });
+
   // les handlers quand on clique sur "<" ou ">"
   function clickBtnPager() {
     // remet à jour les données de state en demandant la page
     // identifiée dans l'attribut data-page
     // noter ici le 'this' QUI FAIT AUTOMATIQUEMENT REFERENCE
     // A L'ELEMENT AUQUEL ON ATTACHE CE HANDLER
-    getQuizzes(this.dataset.page);
+    getQuizzes(this.dataset.page, state.quizzes.pageSize);
   }
   if (!prevBtn.classList.contains('disabled')) prevBtn.onclick = clickBtnPager;
   if (!nextBtn.classList.contains('disabled')) nextBtn.onclick = clickBtnPager;
@@ -164,7 +212,7 @@ function renderQuizzes() {
 
   // on met la hauteur de la liste des quizzes
   let block = document.getElementById("all-quizzes-list");
-  block.style.height = `${window.innerHeight - block.offsetTop - 100}px`;
+  block.style.maxHeight = `${window.innerHeight - block.offsetTop - 80}px`;
 }
 
 function renderMyQuizzes() {
