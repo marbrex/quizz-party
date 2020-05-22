@@ -4,33 +4,38 @@
 // HTML : fonctions génération de HTML à partir des données passées en paramètre
 // //////////////////////////////////////////////////////////////////////////////
 
+// Fonction qui met le prenom et le nom de l'utilisateur
+// dans la fenetre modale de bienvenue
 const modifyWelcomeModalHtml = () => {
-  var welcomeModal = document.getElementById('modal-welcome');
+  let welcomeModal = document.getElementById('modal-welcome');
   welcomeModal.children[0].innerHTML = `
       <h4>Welcome, ${state.user.lastname} ${state.user.firstname} !</h4>
       <p>We are glad to see you !</p>
     `;
 };
 
+// Fonction qui sera appellee juste apres login
 const signedIn = () => {
-  var profileIcon = document.getElementById('id-login');
+  // On affiche l'icone de profil de l'utilisateur
+  let profileIcon = document.getElementById('id-login');
   profileIcon.style.display = 'inline-block';
 
-  var loginBtnBlock = document.getElementById('login-btn').parentNode;
-  loginBtnBlock.innerHTML = `
-                  <a id="logout-btn" class="waves-effect waves-light btn cyan modal-trigger" href="#modal-logout">Logout</a>
-                `;
+  // On remplace le bouton "login" par "logout"
+  let loginBtnBlock = document.getElementById('login-btn').parentNode;
+  loginBtnBlock.innerHTML = `<a id="logout-btn" class="waves-effect waves-light btn cyan modal-trigger" href="#modal-logout">Logout</a>`;
 };
 
+// Fonction qui sera appellee juste apres logout
 const logedOut = () => {
-  var profileIcon = document.getElementById('id-login');
+  // On cache l'icone de profil de l'utilisateur
+  let profileIcon = document.getElementById('id-login');
   profileIcon.style.display = 'none';
 
-  var logoutBtnBlock = document.getElementById('logout-btn').parentNode;
-  logoutBtnBlock.innerHTML = `
-                  <a id="login-btn" class="waves-effect waves-light btn cyan modal-trigger" href="#modal-login">Login</a>
-                `;
+  // On remplace le bouton "logout" par "login"
+  let logoutBtnBlock = document.getElementById('logout-btn').parentNode;
+  logoutBtnBlock.innerHTML = `<a id="login-btn" class="waves-effect waves-light btn cyan modal-trigger" href="#modal-login">Login</a>`;
 
+  // On supprime le contenu des pages "mes quizzes", "mes reponses"
   document.getElementById('id-my-quizzes-list').innerHTML = `<h4>Login to see your quizzes</h4>`;
   document.getElementById('id-my-answers-list').innerHTML = `<h4>Login to see your answers</h4>`;
   document.getElementById('id-my-current-quiz').innerHTML = '';
@@ -61,6 +66,7 @@ const htmlQuizzesList = (quizzes, curr, total) => {
   // le bouton ">" pour aller à la page suivante, ou rien si c'est la première page
   const nextBtn = `<li id="id-next-quizzes" data-page="${curr+1}" class="${(curr !== total) ? "waves-effect" : "disabled"}"><a><i class="material-icons">chevron_right</i></a></li>`;
 
+  // La barre des outils en haut de la liste des quizzes
   const toolBar = `<nav class="myQuizzes-tool-bar">
     <div class="nav-wrapper">
       <ul class="hide-on-med-and-down">
@@ -71,14 +77,18 @@ const htmlQuizzesList = (quizzes, curr, total) => {
     </div>
   </nav>`;
 
+  // Pagination des quizzes
   let pageSelector = `<ul class="pagination">
     ${prevBtn}`;
 
+  // Si le nombre des pages < 8,
+  // on affiche toutes les pages dans la pagination
   if (total < 8) {
     for (let i=1; i <= total; i++) {
       pageSelector += `<li class="${i===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${i},${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>${i}</a></li>`;
     }
   }
+  // Sinon on affiche les 3 premieres et 3 dernieres
   else {
     pageSelector += `<li class="${1===curr ? "active" : "waves-effect"}" onclick="getQuizzes(1,${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>1</a></li>
     <li class="${2===curr ? "active" : "waves-effect"}" onclick="getQuizzes(2,${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>2</a></li>
@@ -122,13 +132,9 @@ function renderQuizzes() {
   // une fenêtre modale définie dans le HTML
   const modal = document.getElementById('id-modal-quizz-menu');
 
+  // on met les valeurs de tri dans state (quiz_id / asc par default)
   state.quizzes.sort = document.getElementById("sort-modal").value;
   state.quizzes.order = document.getElementById("order-modal").value;
-
-  console.log(state.quizzes.sort);
-  console.log(state.quizzes.order);
-
-  console.log(`Before getting html : ${state.quizzes.pageSize}`);
 
   // on appelle la fonction de généraion et on met le HTML produit dans le DOM
   usersElt.innerHTML = htmlQuizzesList(
@@ -145,6 +151,8 @@ function renderQuizzes() {
   // la liste de tous les quizzes individuels
   const quizzes = document.querySelectorAll('#all-quizzes-side-panel #all-quizzes-list li');
 
+  // Quand l'utilisateur appuie sur OK dans la fentre modale,
+  // on met a jour state et la liste des quizzes
   document.getElementById("confirm-sort-order-modal").onclick = () => {
     state.quizzes.sort = document.getElementById("sort-modal").value;
     state.quizzes.order = document.getElementById("order-modal").value;
@@ -204,12 +212,14 @@ function renderQuizzes() {
     const quizzId = this.dataset.quizzid;
     console.debug(`@clickQuiz(${quizzId})`);
     
+    // On enleve les styles pour tous les autres quizzes
     state.quizzes.results.map((q) => {
       if (q.quiz_id != quizzId) {
         document.querySelector(`li[data-quizzid="${q.quiz_id}"]`).classList.remove("lighten-4");
         document.querySelector(`li[data-quizzid="${q.quiz_id}"]`).classList.add("lighten-5");
       }
     });
+    // On met les styles pour lq quizz actif
     document.querySelector(`li[data-quizzid="${quizzId}"]`).classList.toggle("lighten-5");
     document.querySelector(`li[data-quizzid="${quizzId}"]`).classList.toggle("lighten-4");
 
@@ -518,6 +528,8 @@ const renderUserBtn = () => {
   };
 };
 
+// Fonction qui modifie le contenu de la fenetre modale template
+// pour chaque action => contenu different
 function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
   console.debug(`@modifyMyQuizModal('${action}', ${quiz_id}, ${qstn_id})`);
 
@@ -534,6 +546,11 @@ function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
 
       modal_title.innerHTML = 'Add Question';
 
+      // les variables temporaires qui seront supprimees
+      // apres la fermeture de la fenetre modale.
+      // On en a besoin pour garder les valeurs saisies
+      // par l'utilisateur lors de chaque ajout ou suppression
+      // des propositions.
       if (state.qstnContentTemp === undefined) {
         state.qstnContentTemp = '';
       }
