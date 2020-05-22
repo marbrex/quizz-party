@@ -76,17 +76,17 @@ const htmlQuizzesList = (quizzes, curr, total) => {
 
   if (total < 8) {
     for (let i=1; i <= total; i++) {
-      pageSelector += `<li class="${i===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${i},${quizzes.pageSize})"><a>${i}</a></li>`;
+      pageSelector += `<li class="${i===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${i},${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>${i}</a></li>`;
     }
   }
   else {
-    pageSelector += `<li class="${1===curr ? "active" : "waves-effect"}" onclick="getQuizzes(1,${quizzes.pageSize})"><a>1</a></li>
-    <li class="${2===curr ? "active" : "waves-effect"}" onclick="getQuizzes(2,${quizzes.pageSize})"><a>2</a></li>
-    <li class="${3===curr ? "active" : "waves-effect"}" onclick="getQuizzes(3,${quizzes.pageSize})"><a>3</a></li>
+    pageSelector += `<li class="${1===curr ? "active" : "waves-effect"}" onclick="getQuizzes(1,${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>1</a></li>
+    <li class="${2===curr ? "active" : "waves-effect"}" onclick="getQuizzes(2,${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>2</a></li>
+    <li class="${3===curr ? "active" : "waves-effect"}" onclick="getQuizzes(3,${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>3</a></li>
     <li><a>...</a></li>
-    <li class="${total-2===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total-2},${quizzes.pageSize})"><a>${total-2}</a></li>
-    <li class="${total-1===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total-1},${quizzes.pageSize})"><a>${total-1}</a></li>
-    <li class="${total===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total},${quizzes.pageSize})"><a>${total}</a></li>
+    <li class="${total-2===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total-2},${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>${total-2}</a></li>
+    <li class="${total-1===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total-1},${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>${total-1}</a></li>
+    <li class="${total===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total},${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>${total}</a></li>
     `;
   }
 
@@ -122,6 +122,12 @@ function renderQuizzes() {
   // une fenêtre modale définie dans le HTML
   const modal = document.getElementById('id-modal-quizz-menu');
 
+  state.quizzes.sort = document.getElementById("sort-modal").value;
+  state.quizzes.order = document.getElementById("order-modal").value;
+
+  console.log(state.quizzes.sort);
+  console.log(state.quizzes.order);
+
   console.log(`Before getting html : ${state.quizzes.pageSize}`);
 
   // on appelle la fonction de généraion et on met le HTML produit dans le DOM
@@ -138,6 +144,13 @@ function renderQuizzes() {
   const nextBtn = document.getElementById('id-next-quizzes');
   // la liste de tous les quizzes individuels
   const quizzes = document.querySelectorAll('#all-quizzes-side-panel #all-quizzes-list li');
+
+  document.getElementById("confirm-sort-order-modal").onclick = () => {
+    state.quizzes.sort = document.getElementById("sort-modal").value;
+    state.quizzes.order = document.getElementById("order-modal").value;
+
+    getQuizzes(state.quizzes.currentPage, state.quizzes.pageSize, state.quizzes.sort, state.quizzes.order);
+  };
 
   // on recupere l'element input
   const quizzesPerPage = document.getElementById("quizes-per-page");
@@ -169,7 +182,7 @@ function renderQuizzes() {
         classes: 'error'
       });
     }
-    else getQuizzes(state.quizzes.currentPage, state.quizzes.pageSize);
+    else getQuizzes(state.quizzes.currentPage, state.quizzes.pageSize, state.quizzes.sort, state.quizzes.order);
     console.log(`On Focus Out : ${state.quizzes.pageSize}`);
   });
 
@@ -179,7 +192,7 @@ function renderQuizzes() {
     // identifiée dans l'attribut data-page
     // noter ici le 'this' QUI FAIT AUTOMATIQUEMENT REFERENCE
     // A L'ELEMENT AUQUEL ON ATTACHE CE HANDLER
-    getQuizzes(this.dataset.page, state.quizzes.pageSize);
+    getQuizzes(this.dataset.page, state.quizzes.pageSize, state.quizzes.sort, state.quizzes.order);
   }
   if (!prevBtn.classList.contains('disabled')) prevBtn.onclick = clickBtnPager;
   if (!nextBtn.classList.contains('disabled')) nextBtn.onclick = clickBtnPager;

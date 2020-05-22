@@ -76,20 +76,18 @@
       <h4>Sort and Order Quizes</h4><br>
       <div class="container">
         <div class="input-field col s12">
-          <select>
-            <option value="" disabled selected>Choose your option</option>
-            <option value="1">Option 1</option>
-            <option value="2">Option 2</option>
-            <option value="3">Option 3</option>
+          <select id="sort-modal">
+            <option value="title">Title</option>
+            <option value="created_at">Creation Date</option>
+            <option value="owner_id">Author ID</option>
+            <option value="quiz_id" selected>Quizz ID</option>
           </select>
           <label>Sort by</label>
         </div><br>
         <div class="input-field col s12">
-          <select>
-            <option value="" disabled selected>Choose your option</option>
-            <option value="1">Option 1</option>
-            <option value="2">Option 2</option>
-            <option value="3">Option 3</option>
+          <select id="order-modal">
+            <option value="asc" selected>Ascending</option>
+            <option value="desc">Descending</option>
           </select>
           <label>Order by</label>
         </div>
@@ -97,7 +95,7 @@
     </div>
     <div class="modal-footer">
       <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-      <a class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>
+      <a id="confirm-sort-order-modal" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>
     </div>
   </div>
 

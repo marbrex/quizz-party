@@ -132,9 +132,9 @@ const getUser = () => {
 // getQuizzes télécharge la page 'p' des quizzes et la met dans l'état
 // puis relance le rendu
 // eslint-disable-next-line no-unused-vars
-const getQuizzes = (p = 1, pl = 50) => {
+const getQuizzes = (p = 1, pl = 50, sort = "quiz_id", order = "asc") => {
   console.debug(`@getQuizzes(${p})`);
-  const url = `${state.serverUrl}/quizzes/?page=${p}&limit=${pl}`;
+  const url = `${state.serverUrl}/quizzes/?page=${p}&limit=${pl}&order=${sort}&dir=${order}`;
 
   // le téléchargement est asynchrone, là màj de l'état et le rendu se fait dans le '.then'
   return fetch(url, { method: 'GET', headers: state.headers })
