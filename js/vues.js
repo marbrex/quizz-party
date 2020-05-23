@@ -133,7 +133,7 @@ function renderQuizzes() {
   quizzesPerPage.addEventListener("input", (e) => {
     let nb = e.target.value;
     if (!isNaN(nb)) {
-      // entre 1 et 200 car c'est impose par le serveur
+      // entre 1 et 199 car c'est impose par le serveur
       if (nb >= 1 && nb < 200)
         state.quizzes.pageSize = nb;
       else

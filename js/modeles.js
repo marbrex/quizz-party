@@ -85,6 +85,18 @@ const getQuizzes = (p = 1, pl = 50, sort = "quiz_id", order = "asc") => {
       // /!\ ICI L'ETAT EST MODIFIE /!\
       state.quizzes = data;
 
+      // Si apres avoir modifie le nombre des quizzes par page
+      // on a une liste vide des quizzes
+      // (ex. si pageLimit = 5 et la page actulle est la derniere,
+      // apres on met pageLimit = 50, alors
+      // on aura beaucoup plus moins de pages apres la mise a jour des quizzes
+      // et cette page sur la-quelle on etait avant la maj sera vide dans
+      // le nouvel objet 'quizzes' retourne par le serveur, car
+      // page precedente > derniere page actuelle)
+      if (state.quizzes.results.length === 0) {
+        getQuizzes(1, pl, sort, order);
+      }
+
       // on a mis à jour les donnés, on peut relancer le rendu
       // eslint-disable-next-line no-use-before-define
       return renderQuizzes();
