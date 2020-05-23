@@ -46,64 +46,6 @@ function filterHttpResponse(response) {
     .catch((err) => console.error(`Error on json: ${err}`));
 }
 
-// Le bouton "Login" est appue
-document.getElementById('login-submit').onclick = () => {
-  state.xApiKey = document.getElementById('login-key-input').value;
-  document.getElementById('login-key-input').value = '';
-  // console.log(state.xApiKey);
-
-  headers.set('X-API-KEY', state.xApiKey);
-
-  const url = `${state.serverUrl}/users/whoami`;
-  fetch(url, { method: 'GET', headers: state.headers })
-    .then(filterHttpResponse)
-    .then((data) => {
-      console.log('@login => Data : ');
-      console.log(data);
-      state.user = data;
-
-      if (state.user === undefined) {
-        M.toast({
-          html: 'Your X-Api-Key is not valid!',
-          displayLength: 4000,
-          classes: 'error'
-        });
-      }
-
-      if (state.user) {
-        let elem = document.querySelector('#modal-login');
-        let instance = M.Modal.getInstance(elem);
-        instance.close();
-
-        modifyWelcomeModalHtml();
-        let elemWelcome = document.querySelector('#modal-welcome');
-        let instanceWelcome = M.Modal.getInstance(elemWelcome);
-        instanceWelcome.open();
-
-        signedIn();
-      }
-    }).then(() => {
-      if (state.user) {
-        getMyQuizzes();
-        getMyAnswers();
-      }
-    });
-};
-
-// Le bouton "Logout" est appue
-document.getElementById('logout-submit').onclick = () => {
-  state.xApiKey = '';
-  console.log(`logout => Deleting state.xApiKey`);
-
-  state.user = undefined;
-  console.log(`logout => Deleting state.user`);
-
-  state.myQuizzes = undefined;
-  state.myAnswers = undefined;
-
-  logedOut();
-};
-
 // //////////////////////////////////////////////////////////////////////////////
 // DONNEES DES UTILISATEURS
 // //////////////////////////////////////////////////////////////////////////////
@@ -481,7 +423,8 @@ const postQuestion = (quiz_id) => {
 
   .then((bodyObj) => {
     // ===== Tout est bien passe =====
-    // (On a des donnees correctes)
+    // (On a des donnees correctes
+    // et on peut les envoyer au serveur)
 
     const url = `${state.serverUrl}/quizzes/${quiz_id}/questions`;
 
@@ -527,6 +470,10 @@ const updateQuestion = (quiz_id, qstn_id) => {
   let qstn = document.getElementById('input-question').value;
   console.log(`@updateQuestion(${quiz_id}, ${qstn_id}) => Question : "${qstn}"`);
 
+  // On cree une promesse pour avoir l'execution du code par ordre,
+  // pour etre sur qu'on a d'abord recupere tous les donnees
+  // et APRES on gere les erreurs
+  // et APRES si tout se passe bien on pourra envoyer une requete au serveur
   let p = new Promise((resolve, reject) => {
     // let qstn_props = new Array;
     state.propObjArr.map(prop => {
@@ -599,7 +546,8 @@ const updateQuestion = (quiz_id, qstn_id) => {
 
   .then(qstnObj => {
     // ===== Tout est bien passe =====
-    // (On a des donnees correctes)
+    // (On a des donnees correctes,
+    // on peut envoyer les donnees au serveur)
 
     const url = `${state.serverUrl}/quizzes/${quiz_id}/questions/${qstn_id}`;
 
@@ -639,33 +587,10 @@ const updateQuestion = (quiz_id, qstn_id) => {
 };
 
 // //////////////////////////////////////////////////////////////////////////////
-// PROPOSITIONS
+// DONNEES DES REPONSES
 // //////////////////////////////////////////////////////////////////////////////
 
-// Bouton "Terminer" est clickable ssi
-// l'utilisateur a repondu a toutes les questions
-function onClickProp() {
-  console.log("@onClickProp()");
-  setTimeout(() => {
-    let nb = 0;
-
-    state.questions.map((qstn) => {
-      nb += document.querySelectorAll(`input[type=radio]:checked.input-qstn-${qstn.question_id}`).length;
-    });
-    console.log("@onClickProp() => Answered Questions Number : " + nb);
-
-    if (nb === state.questions.length) {
-      console.log("@onClickProp() => All Questions Answered! Now you can send your answers.");
-      document.getElementById('quiz-done-btn').classList.remove("disabled");
-    }
-  }, 100);
-}
-
-function showHideProps(qstn_id) {
-  document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-expanded');
-  document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-collapsed');
-}
-
+// Fonction qui envoie la requete 'GET mes reponses' au serveur
 const getMyAnswers = () => {
   console.debug(`@getMyAnswers()`);
   const url = `${state.serverUrl}/users/answers`;
@@ -685,6 +610,7 @@ const getMyAnswers = () => {
     });
 };
 
+// Fonction qui envoie la requete 'POST reponses' au serveur
 const postAnswers = (quiz_id, qstn_id, prop_id) => {
   console.debug(`@postAnswers(${quiz_id}, ${qstn_id}, ${prop_id})`);
   const url = `${state.serverUrl}/quizzes/${quiz_id}/questions/${qstn_id}/answers/${prop_id}`;
@@ -705,157 +631,6 @@ const postAnswers = (quiz_id, qstn_id, prop_id) => {
     return resp;
   });
 };
-
-function onClickTerminer() {
-  console.log("@onClickTerminer()");
-
-  let propsArr = new Array;
-
-  console.log("@onClickTerminer() => user : ");
-  console.log(state.user);
-
-  if (state.user) {
-    let responsePromisesArr = new Array;
-    
-    state.questions.map((qstn, index) => {
-      propsArr[index] = Number(document.querySelector(`input[type=radio]:checked.input-qstn-${qstn.question_id}`).value);
-
-      let jsonData = new Object({
-        user_id: state.user.user_id,
-        quiz_id: qstn.quiz_id,
-        question_id: qstn.question_id,
-        proposition_id: propsArr[index],
-        answered_at: new Date()
-      });
-
-      console.log("@onClickTerminer() => Data to send : ");
-      console.log(jsonData);
-
-      responsePromisesArr[index] = postAnswers(jsonData.quiz_id, jsonData.question_id, jsonData.proposition_id);
-
-      console.log("@onClickTerminer() => Promise Returned : ");
-      console.log(responsePromisesArr[index]);
-    });
-
-    Promise.all(responsePromisesArr).then((respArr) => {
-      console.log("@onClickTerminer() => Response Array returned from the server : ");
-      console.log(respArr);
-
-      let accumStatus = 0;
-      respArr.map(r => accumStatus += r.status);
-      accumStatus /= respArr.length;
-
-      switch (accumStatus) {
-        case 201:
-          M.toast({
-            html: 'Answers Saved !',
-            displayLength: 4000,
-            classes: 'success'
-          });
-          break;
-        case 403:
-          M.toast({
-            html: 'This Quizz is closed !',
-            displayLength: 4000,
-            classes: 'error'
-          });
-          break;
-      }
-
-      // to update user's answers
-      getMyAnswers();
-    });
-  }
-  else {
-    M.toast({
-      html: 'You have to login before !',
-      displayLength: 4000,
-      classes: 'error'
-    });
-  }
-}
-
-function onClickMyQuizBtn(action, quiz_id = 0, qstn_id = 0) {
-  modifyMyQuizModal(action, quiz_id, qstn_id);
-  let modal = document.querySelector(`#modal-template`);
-  let instance = M.Modal.init(modal, {
-    onCloseEnd: function() {
-      // setTimeout(() => {
-        console.log(`@modal.onCloseEnd()`);
-        state.qstnContentTemp = undefined;
-        state.propObjArr = undefined;
-        state.props_ids = undefined;
-      // }, 1000);
-    }
-  });
-  instance.open();
-}
-
-function addPropQstnModal() {
-  console.debug(`@addPropQstnModal()`);
-
-  // console.log('@addPropQstnModal() => state.propObjArr BEFORE :');
-  // console.log(state.propObjArr);
-
-  // console.log('@addPropQstnModal() => state.props_ids BEFORE :');
-  // console.log(state.props_ids);
-
-  let prop = document.getElementById('add-qstn-modal-input-prop').value;
-  if (prop === '' || !prop || !prop.replace(/\s/g, '').length) {
-    M.toast({
-      html: 'Proposition is empty !',
-      displayLength: 4000,
-      classes: 'error'
-    });
-  } else {
-    let prop_id = state.propObjArr.length;
-
-    while (state.props_ids.includes(prop_id)) {
-      prop_id++;
-    }
-
-    let obj = {
-      content: prop,
-      proposition_id: prop_id,
-      correct: false
-    };
-
-    state.propObjArr.push(obj);
-    state.props_ids.push(prop_id);
-
-    // console.log('@addPropQstnModal() => state.propObjArr AFTER :');
-    // console.log(state.propObjArr);
-
-    // console.log('@addPropQstnModal() => state.props_ids AFTER :');
-    // console.log(state.props_ids);
-
-    state.qstnContentTemp = document.getElementById('input-question').value;
-    modifyMyQuizModal(state.modalAction, state.myCurrentQuiz, state.modal_qstn_id);
-  }
-}
-
-function removePropQstnModal(prop_id) {
-  console.debug(`@removePropQstnModal(${prop_id})`);
-
-  state.propObjArr.map((prop, index) => {
-    if (prop.proposition_id === prop_id) {
-      state.propObjArr.splice(index, 1);
-    }
-  });
-  // console.debug(`@removePropQstnModal(${prop_id}) => state.propObjArr :`);
-  // console.debug(state.propObjArr);
-
-  state.props_ids.map((id, index) => {
-    if (id === prop_id) {
-      state.props_ids.splice(index, 1);
-    }
-  });
-  // console.debug(`@removePropQstnModal(${prop_id}) => state.props_ids :`);
-  // console.debug(state.props_ids);
-
-  state.qstnContentTemp = document.getElementById('input-question').value;
-  modifyMyQuizModal(state.modalAction, state.myCurrentQuiz, state.modal_qstn_id);
-}
 
 document.getElementById("search-form").onsubmit = () => {
   console.debug(`@search()`);
