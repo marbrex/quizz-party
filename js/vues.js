@@ -4,33 +4,38 @@
 // HTML : fonctions génération de HTML à partir des données passées en paramètre
 // //////////////////////////////////////////////////////////////////////////////
 
+// Fonction qui met le prenom et le nom de l'utilisateur
+// dans la fenetre modale de bienvenue
 const modifyWelcomeModalHtml = () => {
-  var welcomeModal = document.getElementById('modal-welcome');
+  let welcomeModal = document.getElementById('modal-welcome');
   welcomeModal.children[0].innerHTML = `
       <h4>Welcome, ${state.user.lastname} ${state.user.firstname} !</h4>
       <p>We are glad to see you !</p>
     `;
 };
 
+// Fonction qui sera appellee juste apres login
 const signedIn = () => {
-  var profileIcon = document.getElementById('id-login');
+  // On affiche l'icone de profil de l'utilisateur
+  let profileIcon = document.getElementById('id-login');
   profileIcon.style.display = 'inline-block';
 
-  var loginBtnBlock = document.getElementById('login-btn').parentNode;
-  loginBtnBlock.innerHTML = `
-                  <a id="logout-btn" class="waves-effect waves-light btn cyan modal-trigger" href="#modal-logout">Logout</a>
-                `;
+  // On remplace le bouton "login" par "logout"
+  let loginBtnBlock = document.getElementById('login-btn').parentNode;
+  loginBtnBlock.innerHTML = `<a id="logout-btn" class="waves-effect waves-light btn cyan modal-trigger" href="#modal-logout">Logout</a>`;
 };
 
+// Fonction qui sera appellee juste apres logout
 const logedOut = () => {
-  var profileIcon = document.getElementById('id-login');
+  // On cache l'icone de profil de l'utilisateur
+  let profileIcon = document.getElementById('id-login');
   profileIcon.style.display = 'none';
 
-  var logoutBtnBlock = document.getElementById('logout-btn').parentNode;
-  logoutBtnBlock.innerHTML = `
-                  <a id="login-btn" class="waves-effect waves-light btn cyan modal-trigger" href="#modal-login">Login</a>
-                `;
+  // On remplace le bouton "logout" par "login"
+  let logoutBtnBlock = document.getElementById('logout-btn').parentNode;
+  logoutBtnBlock.innerHTML = `<a id="login-btn" class="waves-effect waves-light btn cyan modal-trigger" href="#modal-login">Login</a>`;
 
+  // On supprime le contenu des pages "mes quizzes", "mes reponses"
   document.getElementById('id-my-quizzes-list').innerHTML = `<h4>Login to see your quizzes</h4>`;
   document.getElementById('id-my-answers-list').innerHTML = `<h4>Login to see your answers</h4>`;
   document.getElementById('id-my-current-quiz').innerHTML = '';
@@ -46,7 +51,7 @@ const htmlQuizzesList = (quizzes, curr, total) => {
   // On définit aussi .modal-trigger et data-target="id-modal-quizz-menu"
   // pour qu'une fenêtre modale soit affichée quand on clique dessus
   // VOIR https://materializecss.com/modals.html
-  const quizzesLIst = quizzes.map(
+  const quizzesLIst = quizzes.results.map(
     (q) =>
       `<li class="collection-item cyan lighten-5 quizz-element" data-quizzid="${q.quiz_id}">
         <h5>${q.title}</h5>
@@ -56,27 +61,58 @@ const htmlQuizzesList = (quizzes, curr, total) => {
 
   // le bouton "<" pour revenir à la page précédente, ou rien si c'est la première page
   // on fixe une donnée data-page pour savoir où aller via JS via element.dataset.page
-  const prevBtn =
-    curr !== 1
-      ? `<button id="id-prev-quizzes" data-page="${curr -
-          1}" class="btn cyan"><i class="material-icons">navigate_before</i></button>`
-      : '';
+  const prevBtn = `<li id="id-prev-quizzes" data-page="${curr-1}" class="${(curr !== 1) ? "waves-effect" : "disabled"}"><a><i class="material-icons">chevron_left</i></a></li>`;
 
   // le bouton ">" pour aller à la page suivante, ou rien si c'est la première page
-  const nextBtn =
-    curr !== total
-      ? `<button id="id-next-quizzes" data-page="${curr +
-          1}" class="btn cyan"><i class="material-icons">navigate_next</i></button>`
-      : '';
+  const nextBtn = `<li id="id-next-quizzes" data-page="${curr+1}" class="${(curr !== total) ? "waves-effect" : "disabled"}"><a><i class="material-icons">chevron_right</i></a></li>`;
+
+  // La barre des outils en haut de la liste des quizzes
+  const toolBar = `<nav class="myQuizzes-tool-bar">
+    <div class="nav-wrapper">
+      <ul class="hide-on-med-and-down">
+        <li class="status-message"><span>${quizzes.results.length} / ${quizzes.nbResults} ${(quizzes.nbResults == 1) ? "quiz" : "quizes"}</span></li>
+        <li class="status-message"><span><input type="text" min="1" max="${quizzes.nbResults}" maxlength="${String(quizzes.nbResults).length}" id="quizes-per-page" class="browser-default" value="${quizzes.pageSize}" /> per page</span></li>
+        <li class="right"><a class="modal-trigger" href="#modal-sort-quizes"><i class="material-icons">sort</i></a></li>
+      </ul>
+    </div>
+  </nav>`;
+
+  // Pagination des quizzes
+  let pageSelector = `<ul class="pagination">
+    ${prevBtn}`;
+
+  // Si le nombre des pages < 8,
+  // on affiche toutes les pages dans la pagination
+  if (total < 8) {
+    for (let i=1; i <= total; i++) {
+      pageSelector += `<li class="${i===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${i},${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>${i}</a></li>`;
+    }
+  }
+  // Sinon on affiche les 3 premieres et 3 dernieres
+  else {
+    pageSelector += `<li class="${1===curr ? "active" : "waves-effect"}" onclick="getQuizzes(1,${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>1</a></li>
+    <li class="${2===curr ? "active" : "waves-effect"}" onclick="getQuizzes(2,${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>2</a></li>
+    <li class="${3===curr ? "active" : "waves-effect"}" onclick="getQuizzes(3,${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>3</a></li>
+    <li><a>...</a></li>
+    <li class="${total-2===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total-2},${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>${total-2}</a></li>
+    <li class="${total-1===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total-1},${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>${total-1}</a></li>
+    <li class="${total===curr ? "active" : "waves-effect"}" onclick="getQuizzes(${total},${quizzes.pageSize},'${state.quizzes.sort}','${state.quizzes.order}')"><a>${total}</a></li>
+    `;
+  }
+
+  pageSelector += `${nextBtn}
+  </ul>`;
 
   // La liste complète et les deux boutons en bas
   const html = `
-  <ul class="collection">
-    ${quizzesLIst.join('')}
-  </ul>
-  <div class="row">      
-    <div class="col s6 left-align">${prevBtn}</div>
-    <div class="col s6 right-align">${nextBtn}</div>
+  ${toolBar}
+  <div id="all-quizzes-list-block">
+    <ul id="all-quizzes-list" class="collection">
+      ${quizzesLIst.join('')}
+    </ul>
+    <div class="row center">      
+      ${pageSelector}
+    </div>
   </div>
   `;
   return html;
@@ -92,13 +128,17 @@ function renderQuizzes() {
   console.debug(`@renderQuizzes()`);
 
   // les éléments à mettre à jour : le conteneur pour la liste des quizz
-  const usersElt = document.getElementById('id-all-quizzes-list');
+  const usersElt = document.getElementById('all-quizzes-side-panel');
   // une fenêtre modale définie dans le HTML
   const modal = document.getElementById('id-modal-quizz-menu');
 
+  // on met les valeurs de tri dans state (quiz_id / asc par default)
+  state.quizzes.sort = document.getElementById("sort-modal").value;
+  state.quizzes.order = document.getElementById("order-modal").value;
+
   // on appelle la fonction de généraion et on met le HTML produit dans le DOM
   usersElt.innerHTML = htmlQuizzesList(
-    state.quizzes.results,
+    state.quizzes,
     state.quizzes.currentPage,
     state.quizzes.nbPages
   );
@@ -109,7 +149,50 @@ function renderQuizzes() {
   const prevBtn = document.getElementById('id-prev-quizzes');
   const nextBtn = document.getElementById('id-next-quizzes');
   // la liste de tous les quizzes individuels
-  const quizzes = document.querySelectorAll('#id-all-quizzes-list li');
+  const quizzes = document.querySelectorAll('#all-quizzes-side-panel #all-quizzes-list li');
+
+  // Quand l'utilisateur appuie sur OK dans la fentre modale,
+  // on met a jour state et la liste des quizzes
+  document.getElementById("confirm-sort-order-modal").onclick = () => {
+    state.quizzes.sort = document.getElementById("sort-modal").value;
+    state.quizzes.order = document.getElementById("order-modal").value;
+
+    getQuizzes(state.quizzes.currentPage, state.quizzes.pageSize, state.quizzes.sort, state.quizzes.order);
+  };
+
+  // on recupere l'element input
+  const quizzesPerPage = document.getElementById("quizes-per-page");
+  // on conserve le nombre des quizzes par page juste avant la modification
+  let prevPerPage = state.quizzes.pageSize;
+
+  // on ajoute un evenement, quand l'utilisateur saisie le nombre
+  // des quizzes par page, on met a jour la valeur dans state
+  quizzesPerPage.addEventListener("input", (e) => {
+    let nb = e.target.value;
+    if (!isNaN(nb)) {
+      // entre 1 et 200 car c'est impose par le serveur
+      if (nb >= 1 && nb < 200)
+        state.quizzes.pageSize = nb;
+      else
+        state.quizzes.pageSize = prevPerPage;
+      console.log(`On Input : ${state.quizzes.pageSize}`);
+    }
+  });
+
+  // on ajoute un evenement, quand l'utilisateur a fini d'entrer
+  // le nombre et 'focusout' du champs de saisi, on update
+  // la page actuelle
+  quizzesPerPage.addEventListener("focusout", () => {
+    if (prevPerPage < 1 || prevPerPage >= 200) {
+      M.toast({
+        html: "Number must be between 1 and 199 !",
+        displayLength: 3000,
+        classes: 'error'
+      });
+    }
+    else getQuizzes(state.quizzes.currentPage, state.quizzes.pageSize, state.quizzes.sort, state.quizzes.order);
+    console.log(`On Focus Out : ${state.quizzes.pageSize}`);
+  });
 
   // les handlers quand on clique sur "<" ou ">"
   function clickBtnPager() {
@@ -117,10 +200,10 @@ function renderQuizzes() {
     // identifiée dans l'attribut data-page
     // noter ici le 'this' QUI FAIT AUTOMATIQUEMENT REFERENCE
     // A L'ELEMENT AUQUEL ON ATTACHE CE HANDLER
-    getQuizzes(this.dataset.page);
+    getQuizzes(this.dataset.page, state.quizzes.pageSize, state.quizzes.sort, state.quizzes.order);
   }
-  if (prevBtn) prevBtn.onclick = clickBtnPager;
-  if (nextBtn) nextBtn.onclick = clickBtnPager;
+  if (!prevBtn.classList.contains('disabled')) prevBtn.onclick = clickBtnPager;
+  if (!nextBtn.classList.contains('disabled')) nextBtn.onclick = clickBtnPager;
 
   // qd on clique sur un quizz, on change sont contenu avant affichage
   // l'affichage sera automatiquement déclenché par materializecss car on
@@ -129,12 +212,14 @@ function renderQuizzes() {
     const quizzId = this.dataset.quizzid;
     console.debug(`@clickQuiz(${quizzId})`);
     
+    // On enleve les styles pour tous les autres quizzes
     state.quizzes.results.map((q) => {
       if (q.quiz_id != quizzId) {
         document.querySelector(`li[data-quizzid="${q.quiz_id}"]`).classList.remove("lighten-4");
         document.querySelector(`li[data-quizzid="${q.quiz_id}"]`).classList.add("lighten-5");
       }
     });
+    // On met les styles pour lq quizz actif
     document.querySelector(`li[data-quizzid="${quizzId}"]`).classList.toggle("lighten-5");
     document.querySelector(`li[data-quizzid="${quizzId}"]`).classList.toggle("lighten-4");
 
@@ -147,6 +232,10 @@ function renderQuizzes() {
   quizzes.forEach((q) => {
     q.onclick = clickQuiz;
   });
+
+  // on met la hauteur de la liste des quizzes
+  let block = document.getElementById("all-quizzes-list");
+  block.style.maxHeight = `${window.innerHeight - block.offsetTop - 80}px`;
 }
 
 function renderMyQuizzes() {
@@ -154,7 +243,14 @@ function renderMyQuizzes() {
 
   let html = '';
   if (state.myQuizzes.length === 0) {
-    html = `<h4>You don't have any quizzes</h4>`;
+    html = `<nav class="myQuizzes-tool-bar">
+      <div class="nav-wrapper">
+        <ul class="left hide-on-med-and-down">
+          <li><a class="modal-trigger" href="#modal-create-quiz"><i class="material-icons left">add</i>Create</a></li>
+        </ul>
+      </div>
+    </nav>
+    <h4>You don't have any quizzes</h4>`;
   }
   else {
     html = `<nav class="myQuizzes-tool-bar">
@@ -210,10 +306,10 @@ function renderMyCurrentQuiz() {
   let html = '';
   let myQuestionsArr = state.myQuestions;
 
-  console.log("myQuestions: ");
+  console.log("@renderMyCurrentQuiz() => My Questions : ");
   console.log(state.myQuestions);
 
-  console.log("Quizzes: ");
+  console.log("@renderMyCurrentQuiz() => Quizzes : ");
   console.log(state.quizzes);
 
   let myQuiz_id = state.myCurrentQuiz;
@@ -432,6 +528,8 @@ const renderUserBtn = () => {
   };
 };
 
+// Fonction qui modifie le contenu de la fenetre modale template
+// pour chaque action => contenu different
 function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
   console.debug(`@modifyMyQuizModal('${action}', ${quiz_id}, ${qstn_id})`);
 
@@ -448,6 +546,11 @@ function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
 
       modal_title.innerHTML = 'Add Question';
 
+      // les variables temporaires qui seront supprimees
+      // apres la fermeture de la fenetre modale.
+      // On en a besoin pour garder les valeurs saisies
+      // par l'utilisateur lors de chaque ajout ou suppression
+      // des propositions.
       if (state.qstnContentTemp === undefined) {
         state.qstnContentTemp = '';
       }
@@ -466,14 +569,14 @@ function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
       state.propObjArr.map((prop, index) => {
         html += `<li class="collection-item question-proposition row add-qstn-modal-prop-block">
           <p class="col">${index+1}) ${prop.content}</p>
-          <label class="col">
-            <input id="prop-id-${prop.proposition_id}" name="add-qstn-modal-prop-correct" type="radio" />
-            <span>Correct</span>
-          </label>
           <a class="myQuiz-remove-prop-btn valign-wrapper col right" onclick="removePropQstnModal(${prop.proposition_id})">
             <i class="material-icons">delete</i>
             Remove
           </a>
+          <label class="col right">
+            <input id="prop-id-${prop.proposition_id}" name="add-qstn-modal-prop-correct" type="radio" />
+            <span>Correct</span>
+          </label>
         </li>`;
       });
       html += `<li class="collection-item">
@@ -492,8 +595,8 @@ function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
       modal_body.innerHTML = html;
 
       modal_footer.innerHTML = `
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-      <a onclick="postQuestion(${quiz_id})" id="modal-template-okBtn" href="#!" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
+      <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+      <a onclick="postQuestion(${quiz_id})" id="modal-template-okBtn" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
 
       break;
 
@@ -523,8 +626,8 @@ function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
           </label>
         </div>`;
         modal_footer.innerHTML = `
-        <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-        <a onclick="updateQuiz(${quiz_id})" id="modal-template-okBtn" href="#!" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
+        <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+        <a onclick="updateQuiz(${quiz_id})" id="modal-template-okBtn" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
       });
 
       break;
@@ -533,35 +636,41 @@ function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
 
       modal_title.innerHTML = 'Edit Question';
 
-      console.log(`@modifyMyQuizModal('${action}', ${quiz_id}, ${qstn_id}) => state.propObjArr BEFORE`);
-      console.log(state.propObjArr);
+      // console.log(`@modifyMyQuizModal('${action}', ${quiz_id}, ${qstn_id}) => state.propObjArr BEFORE`);
+      // console.log(state.propObjArr);
 
-      console.log(`@modifyMyQuizModal('${action}', ${quiz_id}, ${qstn_id}) => state.myQuestions BEFORE`);
-      console.log(state.myQuestions);
+      // Pour pre-remplir les champs du formulaire
+      // (execute qu'une seule fois)
+      if (state.qstnContentTemp === undefined &&
+          state.propObjArr === undefined &&
+          state.props_ids === undefined) {
 
-      state.myQuestions.map((qstn) => {
-        if(qstn.question_id === qstn_id) {
-          if (state.qstnContentTemp === undefined &&
-              state.propObjArr === undefined &&
-              state.props_ids === undefined) {
-            
+        state.myQuestions.map((qstn) => {
+          if(qstn.question_id === qstn_id) {
+
             state.qstnContentTemp = qstn.sentence;
             state.propObjArr = [];
             state.props_ids = [];
+
+            // On copie toutes les propositions dans state.propObjArr
+            // (on est oblige de faire comme ca, car si on fait
+            // state.propObjArr = qstn.propositions
+            // JS va faire une reference et c'est pas ce qu'on veut)
             qstn.propositions.map((prop, index) => {
               state.propObjArr[index] = {
                 content: prop.content,
                 proposition_id: prop.proposition_id,
                 correct: false
               };
+              // On copie les IDs
               state.props_ids.push(prop.proposition_id);
             });
           }
-        }
-      });
+        });
+      }
 
-      console.log(`@modifyMyQuizModal('${action}', ${quiz_id}, ${qstn_id}) => state.propObjArr AFTER`);
-      console.log(state.propObjArr);
+      // console.log(`@modifyMyQuizModal('${action}', ${quiz_id}, ${qstn_id}) => state.propObjArr AFTER`);
+      // console.log(state.propObjArr);
 
       let htmlEditQstn = `<div class="input-field">
         <input id="input-question" type="text" class="validate" value="${state.qstnContentTemp}">
@@ -569,36 +678,39 @@ function modifyMyQuizModal (action, quiz_id = 0, qstn_id = 0) {
       </div>
       <ul class="collection">`;
       state.propObjArr.map((prop, index) => {
-        htmlEditQstn += `<li class="collection-item question-proposition row add-qstn-modal-prop-block">
-          <p class="col">${index+1}) ${prop.content}</p>
-          <label class="col">
-            <input id="prop-id-${prop.proposition_id}" name="add-qstn-modal-prop-correct" type="radio" />
-            <span>Correct</span>
-          </label>
-          <a class="myQuiz-remove-prop-btn valign-wrapper col right" onclick="removePropQstnModal(${prop.proposition_id})">
-            <i class="material-icons">delete</i>
-            Remove
-          </a>
-        </li>`;
-      });
-      htmlEditQstn += `<li class="collection-item">
-        <div class="row valign-wrapper add-qstn-modal-input-prop-block">
+        htmlEditQstn += `<li class="collection-item question-proposition row add-qstn-modal-prop-block valign-wrapper">
           <div class="input-field col">
-            <input id="add-qstn-modal-input-prop" type="text" class="validate">
-            <label for="add-qstn-modal-input-prop">Proposition</label>
-          </div>
-          <a class="add-qstn-modal-add-prop-btn valign-wrapper col right" onclick="addPropQstnModal()">
-            <i class="material-icons">add</i>
-            Add
-          </a>
-        </div>
-      </li>`;
+            <input id="prop-content-id-${prop.proposition_id}" type="text" class="validate" value="${prop.content}">
+            <label class="active" for="prop-content-id-${prop.proposition_id}">${index+1} Proposition</label>
+          </div>`;
+        // htmlEditQstn += `<a class="myQuiz-remove-prop-btn valign-wrapper col right" onclick="removePropQstnModal(${prop.proposition_id})">
+        //   <i class="material-icons">delete</i>
+        //   Remove
+        // </a>`;
+        htmlEditQstn += `<label class="col right">
+          <input id="prop-id-${prop.proposition_id}" name="add-qstn-modal-prop-correct" type="radio" />
+          <span>Correct</span>
+        </label>`;
+        htmlEditQstn += `</li>`;
+      });
+      // htmlEditQstn += `<li class="collection-item">
+      //   <div class="row valign-wrapper add-qstn-modal-input-prop-block">
+      //     <div class="input-field col">
+      //       <input id="add-qstn-modal-input-prop" type="text" class="validate">
+      //       <label for="add-qstn-modal-input-prop">Proposition</label>
+      //     </div>
+      //     <a class="add-qstn-modal-add-prop-btn valign-wrapper col right" onclick="addPropQstnModal()">
+      //       <i class="material-icons">add</i>
+      //       Add
+      //     </a>
+      //   </div>
+      // </li>`;
       htmlEditQstn += `</ul>`;
       modal_body.innerHTML = htmlEditQstn;
 
       modal_footer.innerHTML = `
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-      <a onclick="updateQuestion(${quiz_id},${qstn_id})" id="modal-template-okBtn" href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>`;
+      <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+      <a onclick="updateQuestion(${quiz_id},${qstn_id})" id="modal-template-okBtn" class="waves-effect waves-green btn-flat cyan-text">OK</a>`;
 
       break;
   }

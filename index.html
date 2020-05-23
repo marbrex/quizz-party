@@ -11,17 +11,6 @@
   </head>
 
   <!-- Modal Structure -->
-  <!-- <div id="id-modal-quizz-menu" class="modal">
-    <div class="modal-content">
-      <h4>Modal Header</h4>
-      <p>A bunch of text</p>
-    </div>
-    <div class="modal-footer">
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">OK</a>
-    </div>
-  </div> -->
-
-  <!-- Modal Structure -->
   <div id="modal-login" class="modal">
     <div class="modal-content center-align">
       <h4>Login</h4>
@@ -33,7 +22,7 @@
       </div>
     </div>
     <div class="modal-footer">
-      <a href="#!" class="modal-close waves-effect waves-red btn-flat">Cancel</a>
+      <a class="modal-close waves-effect waves-red btn-flat">Cancel</a>
       <a id="login-submit" class="waves-effect waves-green btn-flat cyan-text">Login</a>
     </div>
   </div>
@@ -45,7 +34,7 @@
       <p>We are glad to see you !</p>
     </div>
     <div class="modal-footer">
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">OK</a>
+      <a class="modal-close waves-effect waves-green btn-flat">OK</a>
     </div>
   </div>
 
@@ -55,8 +44,8 @@
       <h4>Are you sure you want to log out ?</h4>
     </div>
     <div class="modal-footer">
-      <a href="#!" class="modal-close waves-effect waves-red btn-flat">No</a>
-      <a href="#!" id="logout-submit" class="modal-close waves-effect waves-green btn-flat cyan-text">Yes</a>
+      <a class="modal-close waves-effect waves-red btn-flat">No</a>
+      <a id="logout-submit" class="modal-close waves-effect waves-green btn-flat cyan-text">Yes</a>
     </div>
   </div>
 
@@ -76,8 +65,37 @@
       </div>
     </div>
     <div class="modal-footer">
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-      <a href="#!" class="waves-effect waves-green btn-flat cyan-text" onclick="createNewQuiz()">Create</a>
+      <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+      <a class="waves-effect waves-green btn-flat cyan-text" onclick="createNewQuiz()">Create</a>
+    </div>
+  </div>
+
+  <!-- Modal Structure -->
+  <div id="modal-sort-quizes" class="modal modal-fixed-footer">
+    <div class="modal-content center-align">
+      <h4>Sort and Order Quizes</h4><br>
+      <div class="container">
+        <div class="input-field col s12">
+          <select id="sort-modal">
+            <option value="title">Title</option>
+            <option value="created_at">Creation Date</option>
+            <option value="owner_id">Author ID</option>
+            <option value="quiz_id" selected>Quizz ID</option>
+          </select>
+          <label>Sort by</label>
+        </div><br>
+        <div class="input-field col s12">
+          <select id="order-modal">
+            <option value="asc" selected>Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+          <label>Order by</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+      <a id="confirm-sort-order-modal" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>
     </div>
   </div>
 
@@ -89,8 +107,8 @@
       </div>
     </div>
     <div class="modal-footer">
-      <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
-      <a id="modal-template-okBtn" href="#!" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>
+      <a class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+      <a id="modal-template-okBtn" class="modal-close waves-effect waves-green btn-flat cyan-text">OK</a>
     </div>
   </div>
 
@@ -100,10 +118,10 @@
         <div class="navbar-fixed">
           <nav>
             <div class="nav-wrapper cyan darken-2">
-              <a href="#" class="brand-logo center">Quizz Party<i class="material-icons right">question_answer</i></a>
+              <a href="index.html" class="brand-logo center">Quizz Party<i class="material-icons right">question_answer</i></a>
               <ul class="right hide-on-med-and-down">
                 <li id="search-block">
-                  <form>
+                  <form id="search-form">
                     <div class="input-field cyan darken-1">
                       <input id="search" type="search" placeholder="Search" required />
                       <label class="label-icon" for="search"><i class="material-icons">search</i></label>
@@ -144,7 +162,7 @@
         <div id="id-all-quizzes">
           <div class="row">
             <div class="col l4">
-              <div id="id-all-quizzes-list"></div>
+              <div id="all-quizzes-side-panel"></div>
             </div>
             <div class="col l8">
               <div id="id-all-quizzes-main">

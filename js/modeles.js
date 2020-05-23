@@ -132,9 +132,9 @@ const getUser = () => {
 // getQuizzes télécharge la page 'p' des quizzes et la met dans l'état
 // puis relance le rendu
 // eslint-disable-next-line no-unused-vars
-const getQuizzes = (p = 1) => {
+const getQuizzes = (p = 1, pl = 50, sort = "quiz_id", order = "asc") => {
   console.debug(`@getQuizzes(${p})`);
-  const url = `${state.serverUrl}/quizzes/?page=${p}`;
+  const url = `${state.serverUrl}/quizzes/?page=${p}&limit=${pl}&order=${sort}&dir=${order}`;
 
   // le téléchargement est asynchrone, là màj de l'état et le rendu se fait dans le '.then'
   return fetch(url, { method: 'GET', headers: state.headers })
@@ -159,31 +159,12 @@ const getMyQuizzes = () => {
     .then((data) => {
         // /!\ ICI L'ETAT EST MODIFIE /!\
         state.myQuizzes = data;
-        console.log("My quizzes : ");
+        console.log("@getMyQuizzes() => My quizzes : ");
         console.log(state.myQuizzes);
 
         // on a mis à jour les donnés, on peut relancer le rendu
         // eslint-disable-next-line no-use-before-define
         return renderMyQuizzes();
-    });
-};
-
-const getMyAnswers = () => {
-  console.debug(`@getMyAnswers()`);
-  const url = `${state.serverUrl}/users/answers`;
-
-  // le téléchargement est asynchrone, là màj de l'état et le rendu se fait dans le '.then'
-  return fetch(url, { method: 'GET', headers: state.headers })
-    .then(filterHttpResponse)
-    .then((data) => {
-        // /!\ ICI L'ETAT EST MODIFIE /!\
-        state.myAnswers = data;
-        console.log("My answers : ");
-        console.log(state.myAnswers);
-
-        // on a mis à jour les donnés, on peut relancer le rendu
-        // eslint-disable-next-line no-use-before-define
-        return renderMyAnswers();
     });
 };
 
@@ -407,32 +388,53 @@ const deleteQuestion = (quizId, qstnId) => {
 };
 
 const postQuestion = (quiz_id) => {
+  console.debug(`@postQuestion(${quiz_id})`);
+
+  // On a besoin d'information du quiz associe,
+  // pour recuperer le nombre des questions (Array.length)
+  // que l'on va utiliser comme ID pour prochaine question
   let quiz = getOneQuiz(quiz_id);
+
+  // Apres qu'on a recupere le quiz
   quiz.then((quiz) => {
     console.log(`@postQuestion(${quiz_id}) => Quiz :`);
     console.log(quiz);
 
+    // ID de question a ajouter
     let qstn_id = quiz.questions_number;
 
+    // On regarde s'il existe une question
+    // avec ID = qstn_id
     while (quiz.questions_ids.includes(qstn_id)) {
       qstn_id++;
     }
 
+    console.log(`@postQuestion(${quiz_id}) => Qstn Id : ${qstn_id}`);
+
     return qstn_id;
   })
-  .then((qstn_id) => {
-    let qstn = document.getElementById('input-question').value;
-    let qstn_props = state.propObjArr;
 
+  .then((qstn_id) => {
+    // "sentence" de la question a ajouter
+    let qstn = document.getElementById('input-question').value;
+    console.log(`@postQuestion(${quiz_id}) => Question : "${qstn}"`);
+
+    // Propositions de la question a ajouter
+    let qstn_props = state.propObjArr;
+    console.log(`@postQuestion(${quiz_id}) => Propositions :`);
+    console.log(qstn_props);
+
+    // On stocke tous les informations dans un objet
+    // pour pouvoir passer les donnees a la prochaine promesse
     let bodyObj = {
       question_id: qstn_id,
       sentence: qstn,
       propositions: qstn_props
     };
 
-    console.log(`@postQuestion(${quiz_id}, "${qstn}", ${qstn_props}) => Qstn Id :`);
-    console.log(qstn_id);
+    // ===== GESTION DES ERREURS =====
 
+    // "sentence" est vide ou contient que des espaces
     if (bodyObj.sentence === '' || !bodyObj.sentence || !bodyObj.sentence.replace(/\s/g, '').length) {
       M.toast({
         html: 'Question is empty !',
@@ -442,6 +444,7 @@ const postQuestion = (quiz_id) => {
       throw new Error(`Question is empty !`);
     }
 
+    // Nombre de Propositions est < 2
     if (!bodyObj.propositions || bodyObj.propositions.length < 2) {
       M.toast({
         html: 'Give at least 2 propositions !',
@@ -451,7 +454,9 @@ const postQuestion = (quiz_id) => {
       throw new Error(`Give at least 2 propositions !`);
     }
 
+    // On recupere la bonne reponse a la question
     let checkedProp = document.querySelector('input[name=add-qstn-modal-prop-correct]:checked');
+    // Si OK
     if (checkedProp && checkedProp !== null) {
       let checkedPropId = Number(checkedProp.id.split('-')[2]);
       bodyObj.propositions.map((prop) => {
@@ -462,6 +467,7 @@ const postQuestion = (quiz_id) => {
         }
       });
     } else {
+      // Si la bonne reponse n'est pas choisie
       M.toast({
         html: 'Give correct proposition !',
         displayLength: 4000,
@@ -472,9 +478,11 @@ const postQuestion = (quiz_id) => {
 
     return bodyObj;
   })
-  .then((bodyObj) => {
 
-    console.debug(`@postQuestion(${quiz_id}, "${bodyObj.sentence}", ${bodyObj.propositions})`);
+  .then((bodyObj) => {
+    // ===== Tout est bien passe =====
+    // (On a des donnees correctes)
+
     const url = `${state.serverUrl}/quizzes/${quiz_id}/questions`;
 
     let configObj = {
@@ -483,21 +491,25 @@ const postQuestion = (quiz_id) => {
       body: JSON.stringify(bodyObj)
     };
 
+    // On envoie une requete au serveur
     return fetch(url, configObj)
       .then(filterHttpResponse)
       .then((data) => {
-        console.log(`@postQuestion(${quiz_id}, "${bodyObj.sentence}", ${bodyObj.propositions}) => Data :`);
+        console.log(`@postQuestion(${quiz_id}) => Data :`);
         console.log(data);
 
         // To update
         getMyQuestions(quiz_id);
 
+        // Message de succes
         M.toast({
           html: 'Question created !',
           displayLength: 4000,
           classes: 'success'
         });
 
+        // On ferme la fenetre modal a la main
+        // (car on a specifie Modal.onCloseEnd)
         let elem = document.getElementById('modal-template');
         let inst = M.Modal.getInstance(elem);
         inst.close();
@@ -505,51 +517,125 @@ const postQuestion = (quiz_id) => {
         return data;
       });
   })
-  .catch((err) => console.error(`Error on question posting: ${err}`));
+  // On affiche le message d'erreur dans la console
+  .catch(err => console.error(`Error on question posting: ${err}`));
 };
 
 const updateQuestion = (quiz_id, qstn_id) => {
-  let qstn = document.getElementById('input-question').value;
-  console.log(`@updateQuestion(${quiz_id}, ${qstn_id}) => qstn :`);
-  console.log(qstn);
-
-  console.log(`@updateQuestion(${quiz_id}, ${qstn_id}) => state.propObjArr :`);
-  console.log(state.propObjArr);
-  let qstn_props = state.propObjArr;
-
   console.debug(`@updateQuestion(${quiz_id}, ${qstn_id})`);
-  const url = `${state.serverUrl}/quizzes/${quiz_id}/questions/${qstn_id}`;
 
-  let checkedProp = document.querySelector('input[name=add-qstn-modal-prop-correct]:checked');
-  if (checkedProp) {
-    let checkedPropId = Number(checkedProp.id.split('-')[2]);
-    qstn_props.map((prop) => {
-      if (prop.proposition_id === checkedPropId) {
-        prop.correct = true;
+  let qstn = document.getElementById('input-question').value;
+  console.log(`@updateQuestion(${quiz_id}, ${qstn_id}) => Question : "${qstn}"`);
+
+  let p = new Promise((resolve, reject) => {
+    // let qstn_props = new Array;
+    state.propObjArr.map(prop => {
+      // qstn_props.push({
+      //   content: document.getElementById(`prop-content-id-${prop.proposition_id}`).value,
+      //   proposition_id: prop.proposition_id,
+      //   correct: false
+      // });
+      prop.content = document.getElementById(`prop-content-id-${prop.proposition_id}`).value;
+    });
+
+    console.log(`@updateQuestion(${quiz_id}, ${qstn_id}) => Propositions :`);
+    console.log(state.propObjArr);
+
+    let qstnObj = {
+      sentence: qstn,
+      propositions: state.propObjArr
+    };
+
+    resolve(qstnObj);
+  })
+
+  .then(qstnObj => {
+    // ===== GESTION DES ERREURS =====
+
+    // "sentence" est vide ou contient que des espaces
+    if (qstnObj.sentence === '' || !qstnObj.sentence || !qstnObj.sentence.replace(/\s/g, '').length) {
+      M.toast({
+        html: 'Question is empty !',
+        displayLength: 4000,
+        classes: 'error'
+      });
+      throw new Error(`Question is empty !`);
+    }
+
+    // Si une des propositions est vide ou contient que des espaces
+    qstnObj.propositions.map((prop, index) => {
+      if (prop.content === '' || !prop.content || !prop.content.replace(/\s/g, '').length) {
+        M.toast({
+          html: `Proposition ${index+1} is empty !`,
+          displayLength: 4000,
+          classes: 'error'
+        });
+        throw new Error(`Proposition ${index+1} is empty !`);
       }
     });
-  }
 
-  let configObj = {
-    method: 'PUT',
-    headers: state.headers,
-    body: JSON.stringify({
-      sentence: qstn,
-      propositions: qstn_props
-    })
-  };
+    // On recupere la bonne reponse a la question
+    let checkedProp = document.querySelector('input[name=add-qstn-modal-prop-correct]:checked');
+    // Si OK
+    if (checkedProp && checkedProp !== null) {
+      let checkedPropId = Number(checkedProp.id.split('-')[2]);
+      qstnObj.propositions.map((prop) => {
+        if (prop.proposition_id === checkedPropId) {
+          prop.correct = true;
+        }
+      });
+    } else {
+      // Si la bonne reponse n'est pas choisie
+      M.toast({
+        html: 'Give correct proposition !',
+        displayLength: 4000,
+        classes: 'error'
+      });
+      throw new Error(`Give correct proposition !`);
+    }
 
-  return fetch(url, configObj)
-    .then(filterHttpResponse)
-    .then((data) => {
-      console.log(`@updateQuestion(${quiz_id}, ${qstn_id}) => Data :`);
-      console.log(data);
+    return qstnObj;
+  })
 
-      // To update
-      getMyQuestions(quiz_id);
+  .then(qstnObj => {
+    // ===== Tout est bien passe =====
+    // (On a des donnees correctes)
 
-      return data;
-    });
+    const url = `${state.serverUrl}/quizzes/${quiz_id}/questions/${qstn_id}`;
+
+    let configObj = {
+      method: 'PUT',
+      headers: state.headers,
+      body: JSON.stringify(qstnObj)
+    };
+
+    // On envoie une requete au serveur
+    return fetch(url, configObj)
+      .then(filterHttpResponse)
+      .then((data) => {
+        console.log(`@updateQuestion(${quiz_id}, ${qstn_id}) => Data :`);
+        console.log(data);
+
+        // To update
+        getMyQuestions(quiz_id);
+
+        // Message de succes
+        M.toast({
+          html: 'Question updated !',
+          displayLength: 4000,
+          classes: 'success'
+        });
+
+        // On ferme la fenetre modal a la main
+        // (car on a specifie Modal.onCloseEnd)
+        let elem = document.getElementById('modal-template');
+        let inst = M.Modal.getInstance(elem);
+        inst.close();
+
+        return data;
+      });
+  })
+  .catch(err => console.error(`Error on question updating: ${err}`));
 };
 
 // //////////////////////////////////////////////////////////////////////////////
@@ -579,6 +665,25 @@ function showHideProps(qstn_id) {
   document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-expanded');
   document.querySelector(`#qstn-${qstn_id}-props`).classList.toggle('propositions-block-collapsed');
 }
+
+const getMyAnswers = () => {
+  console.debug(`@getMyAnswers()`);
+  const url = `${state.serverUrl}/users/answers`;
+
+  // le téléchargement est asynchrone, là màj de l'état et le rendu se fait dans le '.then'
+  return fetch(url, { method: 'GET', headers: state.headers })
+    .then(filterHttpResponse)
+    .then((data) => {
+        // /!\ ICI L'ETAT EST MODIFIE /!\
+        state.myAnswers = data;
+        console.log("@getMyAnswers() => My answers : ");
+        console.log(state.myAnswers);
+
+        // on a mis à jour les donnés, on peut relancer le rendu
+        // eslint-disable-next-line no-use-before-define
+        return renderMyAnswers();
+    });
+};
 
 const postAnswers = (quiz_id, qstn_id, prop_id) => {
   console.debug(`@postAnswers(${quiz_id}, ${qstn_id}, ${prop_id})`);
@@ -675,12 +780,12 @@ function onClickMyQuizBtn(action, quiz_id = 0, qstn_id = 0) {
   let modal = document.querySelector(`#modal-template`);
   let instance = M.Modal.init(modal, {
     onCloseEnd: function() {
-      setTimeout(() => {
+      // setTimeout(() => {
         console.log(`@modal.onCloseEnd()`);
         state.qstnContentTemp = undefined;
         state.propObjArr = undefined;
         state.props_ids = undefined;
-      }, 1000);
+      // }, 1000);
     }
   });
   instance.open();
@@ -689,11 +794,11 @@ function onClickMyQuizBtn(action, quiz_id = 0, qstn_id = 0) {
 function addPropQstnModal() {
   console.debug(`@addPropQstnModal()`);
 
-  console.log('@addPropQstnModal() => state.propObjArr BEFORE :');
-  console.log(state.propObjArr);
+  // console.log('@addPropQstnModal() => state.propObjArr BEFORE :');
+  // console.log(state.propObjArr);
 
-  console.log('@addPropQstnModal() => state.props_ids BEFORE :');
-  console.log(state.props_ids);
+  // console.log('@addPropQstnModal() => state.props_ids BEFORE :');
+  // console.log(state.props_ids);
 
   let prop = document.getElementById('add-qstn-modal-input-prop').value;
   if (prop === '' || !prop || !prop.replace(/\s/g, '').length) {
@@ -718,11 +823,11 @@ function addPropQstnModal() {
     state.propObjArr.push(obj);
     state.props_ids.push(prop_id);
 
-    console.log('@addPropQstnModal() => state.propObjArr AFTER :');
-    console.log(state.propObjArr);
+    // console.log('@addPropQstnModal() => state.propObjArr AFTER :');
+    // console.log(state.propObjArr);
 
-    console.log('@addPropQstnModal() => state.props_ids AFTER :');
-    console.log(state.props_ids);
+    // console.log('@addPropQstnModal() => state.props_ids AFTER :');
+    // console.log(state.props_ids);
 
     state.qstnContentTemp = document.getElementById('input-question').value;
     modifyMyQuizModal(state.modalAction, state.myCurrentQuiz, state.modal_qstn_id);
@@ -737,16 +842,22 @@ function removePropQstnModal(prop_id) {
       state.propObjArr.splice(index, 1);
     }
   });
-  console.debug(`@removePropQstnModal(${prop_id}) => state.propObjArr :`);
-  console.debug(state.propObjArr);
+  // console.debug(`@removePropQstnModal(${prop_id}) => state.propObjArr :`);
+  // console.debug(state.propObjArr);
 
   state.props_ids.map((id, index) => {
     if (id === prop_id) {
       state.props_ids.splice(index, 1);
     }
   });
-  console.debug(`@removePropQstnModal(${prop_id}) => state.props_ids :`);
-  console.debug(state.props_ids);
+  // console.debug(`@removePropQstnModal(${prop_id}) => state.props_ids :`);
+  // console.debug(state.props_ids);
 
+  state.qstnContentTemp = document.getElementById('input-question').value;
   modifyMyQuizModal(state.modalAction, state.myCurrentQuiz, state.modal_qstn_id);
 }
+
+document.getElementById("search-form").onsubmit = () => {
+  console.debug(`@search()`);
+  alert(document.querySelector('input#search').value);
+};
