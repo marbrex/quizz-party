@@ -33,7 +33,7 @@ function installWebSocket(callbackOnMessage) {
 
   // Listen for messages
   socket.onmessage = (event) => {
-    // console.info(`Received: ${event.data}`);
+    console.info(`Received: ${event.data}`);
     callbackOnMessage(event.data);
   };
 
@@ -52,4 +52,11 @@ function installWebSocket(callbackOnMessage) {
   }
 
   return sendMessage;
+}
+
+function onServerUpdate(data) {
+  console.debug(`@onServerUpdate => Data:`);
+  console.debug(data);
+
+  getQuizzes(state.quizzes.currentPage, state.quizzes.pageSize, state.quizzes.sort, state.quizzes.order);
 }
