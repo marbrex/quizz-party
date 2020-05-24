@@ -30,4 +30,4 @@ M.AutoInit();
 app();
 
 // pour installer le websocket
-// sendMessage = installWebSocket(console.log);
+sendMessage = installWebSocket(onServerUpdate);
