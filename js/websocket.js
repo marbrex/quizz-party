@@ -33,7 +33,7 @@ function installWebSocket(callbackOnMessage) {
 
   // Listen for messages
   socket.onmessage = (event) => {
-    console.info(`Received: ${event.data}`);
+    // console.info(`Received: ${event.data}`);
     callbackOnMessage(event.data);
   };
 
@@ -55,8 +55,12 @@ function installWebSocket(callbackOnMessage) {
 }
 
 function onServerUpdate(data) {
-  console.debug(`@onServerUpdate => Data:`);
-  console.debug(data);
+  let dataObj = JSON.parse(data);
 
-  getQuizzes(state.quizzes.currentPage, state.quizzes.pageSize, state.quizzes.sort, state.quizzes.order);
+  console.debug(`@onServerUpdate => Parsed Received Data:`);
+  console.debug(dataObj);
+
+  if (dataObj.type === "quiz" || dataObj.type === "question" || dataObj.type === "proposition") {
+    getQuizzes(state.quizzes.currentPage, state.quizzes.pageSize, state.quizzes.sort, state.quizzes.order);
+  }
 }
