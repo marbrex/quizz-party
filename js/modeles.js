@@ -11,7 +11,7 @@ var state = {
   xApiKey: '',
 
   // l'URL du serveur où accéder aux données
-  serverUrl: 'https://lifap5.univ-lyon1.fr',
+  serverUrl: 'https://eldark.net/quizparty',
 
   // la liste des quizzes
   quizzes: [],
