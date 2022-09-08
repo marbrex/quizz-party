@@ -54,14 +54,14 @@ Galerie
 ------------------------
 
 Tous les Quizzes
-![All Quizzes](main-page.png)
+![All Quizzes](img/main-page.png)
 
 Mes Quizzes
-![My Quizzes](my-quizzes.png)
+![My Quizzes](img/my-quizzes.png)
 
 Création des Quizzes
-![Create a Quiz](add-question.png)
+![Create a Quiz](img/add-question.png)
 
 Requêtes API
-![API Requests](api-requests-responses.png)
-![API Requests](api-requests-responses-2.png)
+![API Requests](img/api-requests-responses.png)
+![API Requests](img/api-requests-responses-2.png)
