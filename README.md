@@ -64,4 +64,5 @@ Création des Quizzes
 
 Requêtes API
 ![API Requests](img/api-requests-responses.png)
-![API Requests](img/api-requests-responses-2.png)
+
+![API Requests 2](img/api-requests-responses-2.png)
