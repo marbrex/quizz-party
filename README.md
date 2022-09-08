@@ -50,7 +50,18 @@ Partie 2 : fonctionnalités optionnelles (au choix) pour le 24/05/20 - 23h59
 * [x] Catégorie **mise à jour dynamique**
   - Gérer la mise à jour dynamique de la liste des quiz avec avec le _websocket_ fourni par le fichier [`websocket.js`](./js/websocket.js). La fonction fournie `installWebSocket(callbackOnMessage)` prend un paramètre un callback qui devra lancer le rafraichissement de votre interface lors d'une mise à jour sur le serveur.
 
-Remarques additionnelles
+Galerie
 ------------------------
 
- Ici, commentaires ou remarques à destination des enseignants
+Tous les Quizzes
+![All Quizzes](main-page.png)
+
+Mes Quizzes
+![My Quizzes](my-quizzes.png)
+
+Création des Quizzes
+![Create a Quiz](add-question.png)
+
+Requêtes API
+![API Requests](api-requests-responses.png)
+![API Requests](api-requests-responses-2.png)
