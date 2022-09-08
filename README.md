@@ -1,10 +1,9 @@
 LIFAP5 - projet 2019-2020 : gestionnaire de QCM
 ===============================================
 
-**Ce document est à remplir et à remettre avec votre rendu projet sur Tomuss**
-
-* URL du dépôt <https://forge.univ-lyon1.fr/p1712650/projet-lifap5>
-* KASMAMYTOV Eldar p1712650
+* [Interface](https://marbrex.github.io/quizz-party-client)
+* [API Deployment](https://eldark.net/quizparty)
+* KASMAMYTOV Eldar
 * Quizz Party
 
 Partie 1 : fonctionnalités obligatoires pour le 03/05/20 - 23h59 
@@ -54,15 +53,19 @@ Galerie
 ------------------------
 
 Tous les Quizzes
+
 ![All Quizzes](img/main-page.png)
 
 Mes Quizzes
+
 ![My Quizzes](img/my-quizzes.png)
 
 Création des Quizzes
+
 ![Create a Quiz](img/add-question.png)
 
 Requêtes API
+
 ![API Requests](img/api-requests-responses.png)
 
 ![API Requests 2](img/api-requests-responses-2.png)
